@@ -1,0 +1,29 @@
+{
+  "name": "revane-fastify",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/RevaneFastify.js",
+  "scripts": {
+    "unit": "tap test/*.test.js",
+    "test": "npm run lint && npm run unit",
+    "lint": "standard lib/* test/* testdata/*",
+    "coveralls": "npm run unit --  --cov",
+    "coverage": "npm run coveralls && tap --coverage-report=lcov"
+  },
+  "author": "Denis Fäcke",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "fastify-plugin": "^1.2.0",
+    "request": "^2.87.0",
+    "standard": "^12.0.1",
+    "tap": "^12.0.1"
+  },
+  "dependencies": {
+    "fastify": "^1.5.0",
+    "revane": "^0.2.1"
+  }
+}
