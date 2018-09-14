@@ -57,7 +57,12 @@ The host that will passed to `fastify`.
 ##### port
 The port that will passed to `fastify`.
 
+##### silent
+
+If set to `true` no information about the application will be logged. Defaults to `false`.
+
 #### use(middleware)
+
 Allows to add a middleware.<br>
 **Note**: This will be executed asynchronous.
 
