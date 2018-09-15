@@ -24,6 +24,12 @@
   },
   "dependencies": {
     "fastify": "^1.5.0",
-    "revane": "^0.2.1"
-  }
+    "revane": "^1.0.0"
+  },
+  "keywords": [
+    "inversion of control",
+    "ioc",
+    "dependency injection",
+    "fastify"
+  ]
 }
