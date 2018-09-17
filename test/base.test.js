@@ -120,6 +120,71 @@ test('Should set not found handler', (t) => {
     })
 })
 
+test('Should set not found handler by id', (t) => {
+  t.plan(4)
+
+  const options = {
+    revane: {
+      basePackage: path.join(__dirname, '../testdata')
+    },
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options)
+  revaneFastify
+    .setNotFoundHandler('handler')
+    .ready()
+    .listen()
+    .then(() => {
+      t.pass()
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/test`
+      }, (err, response, body) => {
+        t.error(err)
+        t.strictEqual(response.statusCode, 404)
+        t.strictEqual(body.toString(), 'test')
+        revaneFastify.close()
+      })
+    })
+})
+
+test('Should set error handler by id', (t) => {
+  t.plan(3)
+
+  const options = {
+    revane: {
+      basePackage: path.join(__dirname, '../testdata')
+    },
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options)
+  revaneFastify
+    .register(fastifyPlugin((instance, opts, next) => {
+      instance.get('/', function (request, reply) {
+        reply.send(new Error())
+      })
+      next()
+    }))
+    .setErrorHandler('handler')
+    .ready()
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/`
+      }, (err, response, body) => {
+        t.error(err)
+        t.strictEqual(response.statusCode, 500)
+        t.strictEqual(body.toString(), 'test')
+        revaneFastify.close()
+      })
+    })
+})
+
 test('Should set error handler', (t) => {
   t.plan(4)
 
