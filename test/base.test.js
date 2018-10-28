@@ -26,6 +26,37 @@ test('Should register controller', (t) => {
     })
 })
 
+test('Should bind and create plugin', (t) => {
+  t.plan(4)
+
+  const options = {
+    revane: {
+      basePackage: path.join(__dirname, '../testdata')
+    },
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options)
+  revaneFastify
+    .register('testController2')
+    .ready(() => {
+      t.ok(revaneFastify.server.printRoutes(), '')
+    })
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/`
+      }, (err, response, body) => {
+        t.error(err)
+        t.strictEqual(response.statusCode, 200)
+        t.strictEqual(body.toString(), 'test')
+        revaneFastify.close()
+      })
+    })
+})
+
 test('Should register plugin', (t) => {
   t.plan(1)
 
