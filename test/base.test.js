@@ -1,19 +1,41 @@
 const fastifyPlugin = require('fastify-plugin')
-const path = require('path')
 const request = require('request')
 const test = require('tap').test
 const RevaneFastify = require('..')
+
+const revane = {
+  get (key) {
+    if (key === 'testController') {
+      return new (require('../testdata/TestController'))()
+    }
+    if (key === 'testController2') {
+      return new (require('../testdata/TestController2'))()
+    }
+    if (key === 'config') {
+      return new (require('../testdata/TestAddressProvider'))()
+    }
+    if (key === 'handler') {
+      return new (require('../testdata/TestHandler'))()
+    }
+    if (key === 'logger') {
+      return new (require('../testdata/TestLogger'))()
+    }
+  },
+  has () {
+    return true
+  },
+  initialize () {
+    return Promise.resolve()
+  }
+}
 
 test('Should register controller', (t) => {
   t.plan(2)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register('testController')
     .ready(() => {
@@ -30,12 +52,9 @@ test('Should bind and create plugin', (t) => {
   t.plan(4)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register('testController2')
     .ready(() => {
@@ -61,12 +80,9 @@ test('Should register plugin', (t) => {
   t.plan(1)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(fastifyPlugin(plugin))
     .ready()
@@ -81,12 +97,9 @@ test('Should call after', (t) => {
   t.plan(2)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(fastifyPlugin(plugin))
     .after((err) => t.error(err))
@@ -102,12 +115,9 @@ test('Should use middleware', (t) => {
   t.plan(1)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .use((req, res, next) => next())
     .ready()
@@ -122,12 +132,9 @@ test('Should set not found handler', (t) => {
   t.plan(4)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .setNotFoundHandler(function (request, reply) {
       reply.code(404)
@@ -155,12 +162,9 @@ test('Should set not found handler by id', (t) => {
   t.plan(4)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .setNotFoundHandler('handler')
     .ready()
@@ -185,12 +189,9 @@ test('Should set error handler by id', (t) => {
   t.plan(3)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(fastifyPlugin((instance, opts, next) => {
       instance.get('/', function (request, reply) {
@@ -220,12 +221,9 @@ test('Should set error handler', (t) => {
   t.plan(4)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(fastifyPlugin((instance, opts, next) => {
       instance.get('/', function (request, reply) {
@@ -259,12 +257,9 @@ test('Should start server', (t) => {
   t.plan(3)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register('testController')
     .register(fastifyPlugin(plugin))
@@ -288,12 +283,9 @@ test('Should start server using addressProvider', (t) => {
   t.plan(3)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register('testController')
     .register(fastifyPlugin(plugin))
@@ -346,12 +338,9 @@ test('Should handle error in plugin in listen', (t) => {
   t.plan(1)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(errorPlugin)
     .listen()
@@ -364,12 +353,9 @@ test('Should handle error in plugin in ready', (t) => {
   t.plan(2)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register(errorPlugin)
     .ready((err) => t.ok(err))

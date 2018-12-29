@@ -1,7 +1,6 @@
 'use strict'
 
 const Controller = require('revane').Controller
-const fastifyPlugin = require('fastify-plugin')
 
 class TestController2 {
   plugin (fastify, opts, next) {
