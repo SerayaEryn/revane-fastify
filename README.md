@@ -77,6 +77,11 @@ Allows to add a `fastify` plugin.<br>
 Selects a bean by id and adds it to the `fastify` server.<br>
 **Note**: This will be executed asynchronous.
 
+#### registerControllers()
+
+Registers all beans decorated with `@Controller()`.
+**Note**: This will be executed asynchronous.
+
 #### listen()
 
 Starts listening on the configured host/port. Returns a Promise.

@@ -1,6 +1,6 @@
 'use strict'
 
-const Controller = require('revane').Controller
+const Component = require('revane').Component
 const fastifyPlugin = require('fastify-plugin')
 
 class TestController {
@@ -17,4 +17,4 @@ class TestController {
   }
 }
 
-module.exports = Controller()(TestController)
+module.exports = Component()(TestController)

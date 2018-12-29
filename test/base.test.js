@@ -283,6 +283,7 @@ test('Should start server', (t) => {
       })
     })
 })
+
 test('Should start server using addressProvider', (t) => {
   t.plan(3)
 
@@ -295,6 +296,35 @@ test('Should start server using addressProvider', (t) => {
   const revaneFastify = new RevaneFastify(options)
   revaneFastify
     .register('testController')
+    .register(fastifyPlugin(plugin))
+    .listen('config')
+    .then((address) => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/`
+      }, (err, response, body) => {
+        t.error(err)
+        t.strictEqual(response.statusCode, 200)
+        t.strictEqual(body.toString(), 'test')
+        revaneFastify.close()
+      })
+    })
+})
+
+test('Should start server using addressProvider', (t) => {
+  t.plan(3)
+
+  const options = {
+    revane: {
+      basePackage: path.join(__dirname, '../testdata')
+    },
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options)
+  revaneFastify
+    .registerControllers()
     .register(fastifyPlugin(plugin))
     .listen('config')
     .then((address) => {
