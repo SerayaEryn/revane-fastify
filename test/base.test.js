@@ -2,7 +2,6 @@ const fastifyPlugin = require('fastify-plugin')
 const request = require('request')
 const test = require('tap').test
 const RevaneFastify = require('..')
-const path = require('path')
 
 const revane = {
   get (key) {
