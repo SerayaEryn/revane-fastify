@@ -2,6 +2,7 @@ const fastifyPlugin = require('fastify-plugin')
 const request = require('request')
 const test = require('tap').test
 const RevaneFastify = require('..')
+const path = require('path')
 
 const revane = {
   get (key) {
@@ -26,6 +27,9 @@ const revane = {
   },
   initialize () {
     return Promise.resolve()
+  },
+  getByType () {
+    return [new (require('../testdata/TestController2'))()]
   }
 }
 
@@ -305,16 +309,13 @@ test('Should start server using addressProvider', (t) => {
     })
 })
 
-test('Should start server using addressProvider', (t) => {
+test('Should start server using addressProvider and registerControllers', (t) => {
   t.plan(3)
 
   const options = {
-    revane: {
-      basePackage: path.join(__dirname, '../testdata')
-    },
     port: 0
   }
-  const revaneFastify = new RevaneFastify(options)
+  const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .registerControllers()
     .register(fastifyPlugin(plugin))
