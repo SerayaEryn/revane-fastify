@@ -1,6 +1,6 @@
-const Component = require('revane').Component
+'use strict'
 
-class Config {
+module.exports = class Config {
   get (key) {
     const map = {
       'fastify.host': 'localhost',
@@ -9,5 +9,3 @@ class Config {
     return map[key]
   }
 }
-
-module.exports = Component()(Config)

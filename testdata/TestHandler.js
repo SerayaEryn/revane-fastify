@@ -1,6 +1,6 @@
-const Component = require('revane').Component
+'use strict'
 
-class Handler {
+module.exports = class Handler {
   constructor () {
     this.errorHandler = this.errorHandler.bind(this)
     this.notFoundHandler = this.notFoundHandler.bind(this)
@@ -16,5 +16,3 @@ class Handler {
     reply.send('test')
   }
 }
-
-module.exports = Component()(Handler)

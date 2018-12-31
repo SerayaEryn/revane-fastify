@@ -1,8 +1,6 @@
 'use strict'
 
-const Controller = require('revane').Controller
-
-class TestController2 {
+module.exports = class TestController2 {
   plugin (fastify, opts, next) {
     fastify.get('/', (request, reply) => {
       reply.code(200)
@@ -11,5 +9,3 @@ class TestController2 {
     next()
   }
 }
-
-module.exports = Controller()(TestController2)
