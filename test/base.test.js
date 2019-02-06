@@ -24,9 +24,6 @@ const revane = {
   has () {
     return true
   },
-  initialize () {
-    return Promise.resolve()
-  },
   getByType () {
     return [new (require('../testdata/TestController2'))()]
   }
@@ -331,6 +328,23 @@ test('Should start server using addressProvider and registerControllers', (t) =>
         t.strictEqual(body.toString(), 'test')
         revaneFastify.close()
       })
+    })
+})
+
+test('listen should call callback with string', (t) => {
+  t.plan(1)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, revane)
+  revaneFastify
+    .registerControllers()
+    .register(fastifyPlugin(plugin))
+    .listen('config')
+    .then((address) => {
+      t.ok(typeof address === 'string')
+      revaneFastify.close()
     })
 })
 
