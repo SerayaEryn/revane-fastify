@@ -1,10 +1,10 @@
 import { IncomingMessage, ServerResponse, Server } from 'http';
 import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'http2'
-import { RegisterOptions, Plugin, FastifyError, FastifyRequest, FastifyReply } from 'fastify';
+import { RegisterOptions, Plugin, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 
-declare class HttpServer extends (Server | Http2Server) {}
-declare class HttpRequest extends (IncomingMessage | Http2ServerRequest) {}
-declare class HttpResponse extends (ServerResponse | Http2ServerResponse) {}
+type HttpServer = (Server | Http2Server)
+type HttpRequest = (IncomingMessage | Http2ServerRequest)
+type HttpResponse = (ServerResponse | Http2ServerResponse)
 
 export interface BeanProvider {
   get (id: string): any
@@ -12,8 +12,9 @@ export interface BeanProvider {
   getByType (type: string): any
 }
 
-export class RevaneFastify {
+export default class RevaneFastify {
   constructor (options, beanProvider: BeanProvider);
+  server: FastifyInstance
   use (middleware: (req: IncomingMessage, res: ServerResponse, next: Function) => void): RevaneFastify
   register (plugin: string | any)
   register<T extends RegisterOptions<HttpServer, HttpRequest, HttpResponse>>(plugin: string | Plugin<HttpServer, HttpRequest, HttpResponse, T>, options?: T): RevaneFastify
@@ -22,7 +23,7 @@ export class RevaneFastify {
   close (): Promise<void>
   port (): string
   ready (callback: (err?: Error) => void): RevaneFastify
-  setErrorHandler(handler: (error: FastifyError, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void): RevaneFastify
+  setErrorHandler(handler: (error: Error, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void): RevaneFastify
   setNotFoundHandler(handler: (request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void): RevaneFastify
   after(afterListener: (err: Error) => void): RevaneFastify
   after(afterListener: (err: Error, done: Function) => void): RevaneFastify
