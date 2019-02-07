@@ -24,7 +24,9 @@ export default class RevaneFastify {
   port (): string
   ready (callback: (err?: Error) => void): RevaneFastify
   setErrorHandler(handler: (error: Error, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void): RevaneFastify
+  setErrorHandler(id: string): RevaneFastify
   setNotFoundHandler(handler: (request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void): RevaneFastify
+  setNotFoundHandler(id: string): RevaneFastify
   after(afterListener: (err: Error) => void): RevaneFastify
   after(afterListener: (err: Error, done: Function) => void): RevaneFastify
   after(afterListener: (err: Error, context: FastifyInstance<HttpServer, HttpRequest, HttpResponse>, done: Function) => void): RevaneFastify
