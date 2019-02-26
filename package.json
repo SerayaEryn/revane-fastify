@@ -22,8 +22,8 @@
     "tap": "^12.0.1"
   },
   "dependencies": {
-    "fastify": "^1.5.0",
-    "fastify-plugin": "^1.2.0"
+    "fastify": "^2.0.0",
+    "fastify-plugin": "^1.5.0"
   },
   "keywords": [
     "inversion of control",
