@@ -1,33 +1,50 @@
 'use strict'
 
+import { Options } from './Options'
+import { Plugin, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
+import { IncomingMessage, ServerResponse, Server } from 'http'
+import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'http2'
+import { BeanProvider } from './BeanProvider'
+
+type HttpServer = (Server | Http2Server)
+type HttpRequest = (IncomingMessage | Http2ServerRequest)
+type HttpResponse = (ServerResponse | Http2ServerResponse)
+
 const Fastify = require('fastify')
 const fastifyPlugin = require('fastify-plugin')
 
-const registerPlugin = Symbol('registerPlugin')
-const getHostAndPort = Symbol('getHostAndPort')
-const logStartUp = Symbol('logStartUp')
+type Controller = {
+  plugin: Plugin<HttpServer, HttpRequest, HttpResponse, any>
+  options?: any
+}
 
-class RevaneFastify {
-  constructor (options, beanProvider) {
+export * from './BeanProvider'
+
+export default class RevaneFastify {
+  private options: Options
+  private promise: Promise<any> = Promise.resolve()
+  private server: FastifyInstance
+  private beanProvider: BeanProvider
+  private startTime: number = Date.now()
+
+  constructor (options: Options, beanProvider: BeanProvider) {
     this.options = options
     this.server = Fastify()
     this.beanProvider = beanProvider
-    this.promise = Promise.resolve()
-    this.startTime = Date.now()
   }
 
-  use (middleware) {
+  public use (middleware: (req: IncomingMessage, res: ServerResponse, next: Function) => void): RevaneFastify {
     this.promise = this.promise.then(() => {
       this.server.use(middleware)
     })
     return this
   }
 
-  register (plugin, options) {
+  public register (plugin: string | (Plugin<HttpServer, HttpRequest, HttpResponse, any>), options: any): RevaneFastify {
     this.promise = this.promise.then(() => {
       if (typeof plugin === 'string') {
         const pluginById = this.beanProvider.get(plugin)
-        this[registerPlugin](pluginById)
+        this.registerPlugin(pluginById)
       } else {
         this.server.register(plugin, options)
       }
@@ -35,43 +52,44 @@ class RevaneFastify {
     return this
   }
 
-  registerControllers () {
+  public registerControllers (): RevaneFastify {
     this.promise = this.promise.then(() => {
       const controllers = this.beanProvider.getByType('controller')
       for (const controller of controllers) {
-        this[registerPlugin](controller)
+        this.registerPlugin(controller)
       }
     })
     return this
   }
 
-  async listen (addressProviderId) {
+  public async listen (addressProviderId: string): Promise<string> {
     await this.promise
-    const { host, port } = this[getHostAndPort](addressProviderId)
+    const { host, port } = this.getHostAndPort(addressProviderId)
 
     return new Promise((resolve, reject) => {
       this.server.listen(port, host, (err, address) => {
         if (err) {
           reject(err)
         } else {
-          this[logStartUp]()
+          this.logStartUp()
           resolve(address)
         }
       })
     })
   }
 
-  close () {
+  public close (): Promise<void> {
     return new Promise((resolve) => {
       this.server.close(() => resolve())
     })
   }
 
-  port () {
-    return this.server.server.address().port
+  public port (): number {
+    const addressInfo: any = this.server.server.address()
+    return addressInfo.port
   }
 
-  ready (callback) {
+  public ready (callback: (err?: Error) => void): RevaneFastify {
     this.promise = this.promise
       .then(() => {
         return new Promise((resolve, reject) => {
@@ -90,7 +108,7 @@ class RevaneFastify {
     return this
   }
 
-  setErrorHandler (handler) {
+  public setErrorHandler (handler: string | ((error: Error, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)): RevaneFastify {
     this.promise = this.promise
       .then(() => {
         if (typeof handler === 'string') {
@@ -103,7 +121,7 @@ class RevaneFastify {
     return this
   }
 
-  setNotFoundHandler (handler) {
+  public setNotFoundHandler (handler: string | ((request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)): RevaneFastify {
     this.promise = this.promise
       .then(() => {
         if (typeof handler === 'string') {
@@ -116,13 +134,13 @@ class RevaneFastify {
     return this
   }
 
-  after (handler) {
+  public after (handler: (err: Error) => void): RevaneFastify {
     this.promise = this.promise
       .then(() => this.server.after(handler))
     return this
   }
 
-  [registerPlugin] (plugin) {
+  private registerPlugin (plugin: Controller): void {
     if (isBindable(plugin.plugin)) {
       plugin.plugin = plugin.plugin.bind(plugin)
     }
@@ -133,9 +151,9 @@ class RevaneFastify {
     this.server.register(plugin.plugin, opts)
   }
 
-  [getHostAndPort] (addressProviderId) {
-    let host
-    let port
+  private getHostAndPort (addressProviderId?: string) {
+    let host: string
+    let port: number
     if (typeof addressProviderId === 'string') {
       const addressProvider = this.beanProvider.get(addressProviderId)
       host = addressProvider.get(this.options.hostKey || 'fastify.host')
@@ -147,7 +165,7 @@ class RevaneFastify {
     return { host, port }
   }
 
-  [logStartUp] () {
+  private logStartUp (): void {
     if (!this.options.silent && this.beanProvider.has('logger')) {
       const logger = this.beanProvider.get('logger')
       logger.info(`Fastify started on port: ${this.port()}`)
