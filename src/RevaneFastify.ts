@@ -176,7 +176,7 @@ export default class RevaneFastify {
 }
 
 function isBindable (func) {
-  return !func.name.startsWith('bound')
+  return func.name && !func.name.startsWith('bound')
 }
 
 function isPlugin (func) {

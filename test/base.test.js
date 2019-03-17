@@ -348,6 +348,22 @@ test('listen should call callback with string', (t) => {
       revaneFastify.close()
     })
 })
+test('should register plugin without name', (t) => {
+  t.plan(1)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, revane)
+  revaneFastify
+    .registerControllers()
+    .register(fastifyPlugin((instance, options, next) => next()))
+    .listen('config')
+    .then((address) => {
+      t.ok(typeof address === 'string')
+      revaneFastify.close()
+    })
+})
 
 test('Should handle error in plugin in listen', (t) => {
   t.plan(1)
