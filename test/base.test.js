@@ -30,7 +30,7 @@ const revane = {
 }
 
 test('Should register controller', (t) => {
-  t.plan(2)
+  t.plan(3)
 
   const options = {
     port: 0
@@ -38,8 +38,9 @@ test('Should register controller', (t) => {
   const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
     .register('testController')
-    .ready(() => {
+    .ready((err, instance) => {
       t.ok(revaneFastify.server.printRoutes(), '')
+      t.ok(instance)
     })
     .listen()
     .then(() => {

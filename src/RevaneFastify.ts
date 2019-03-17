@@ -89,13 +89,13 @@ export default class RevaneFastify {
     return addressInfo.port
   }
 
-  public ready (callback: (err?: Error) => void): RevaneFastify {
+  public ready (callback: (err?: Error, fastify?: FastifyInstance<Server, IncomingMessage, ServerResponse>) => void): RevaneFastify {
     this.promise = this.promise
       .then(() => {
         return new Promise((resolve, reject) => {
           this.server.ready((err) => {
             if (callback) {
-              callback(err)
+              callback(err, this.server)
             }
             if (err) {
               reject(err)
@@ -182,6 +182,10 @@ function isBindable (func) {
 function isPlugin (func) {
   return func[Symbol.for('skip-override')] === true
 }
+
+export {
+  FastifyInstance
+} from 'fastify'
 
 module.exports = RevaneFastify
 module.exports.default = RevaneFastify

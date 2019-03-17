@@ -38,7 +38,7 @@ return revaneFastify
     .after((err) => {
       // ...
     })
-    .ready((err) => {
+    .ready((err, instance) => {
       // ...
     })
     .listen()
