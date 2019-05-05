@@ -64,18 +64,11 @@ export default class RevaneFastify {
 
   public async listen (addressProviderId: string): Promise<string> {
     await this.promise
-    const { host, port } = this.getHostAndPort(addressProviderId)
+    const options = this.getHostAndPort(addressProviderId)
 
-    return new Promise((resolve, reject) => {
-      this.server.listen(port, host, (err, address) => {
-        if (err) {
-          reject(err)
-        } else {
-          this.logStartUp()
-          resolve(address)
-        }
-      })
-    })
+    const address = await this.server.listen(options)
+    this.logStartUp()
+    return address
   }
 
   public close (): Promise<void> {
