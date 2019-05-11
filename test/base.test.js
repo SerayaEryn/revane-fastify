@@ -1,6 +1,8 @@
+'use strict'
+
 const fastifyPlugin = require('fastify-plugin')
 const request = require('request')
-const test = require('tap').test
+const test = require('ava')
 const RevaneFastify = require('..')
 
 const revane = {
@@ -30,6 +32,25 @@ const revane = {
 }
 
 test('Should register controller', (t) => {
+  t.plan(2)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, revane)
+  return revaneFastify
+    .register('testController')
+    .ready((err, instance) => {
+      t.truthy(instance)
+    })
+    .listen()
+    .then(() => {
+      t.truthy(revaneFastify.port())
+      revaneFastify.close()
+    })
+})
+
+test.cb('Should bind and create plugin', (t) => {
   t.plan(3)
 
   const options = {
@@ -37,30 +58,7 @@ test('Should register controller', (t) => {
   }
   const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
-    .register('testController')
-    .ready((err, instance) => {
-      t.ok(revaneFastify.server.printRoutes(), '')
-      t.ok(instance)
-    })
-    .listen()
-    .then(() => {
-      t.ok(revaneFastify.port())
-      revaneFastify.close()
-    })
-})
-
-test('Should bind and create plugin', (t) => {
-  t.plan(4)
-
-  const options = {
-    port: 0
-  }
-  const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
     .register('testController2')
-    .ready(() => {
-      t.ok(revaneFastify.server.printRoutes(), '')
-    })
     .listen()
     .then(() => {
       revaneFastify.server.server.unref()
@@ -69,10 +67,11 @@ test('Should bind and create plugin', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 200)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
@@ -84,12 +83,12 @@ test('Should register plugin', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .register(fastifyPlugin(plugin))
     .ready()
     .listen()
     .then(() => {
-      t.ok(revaneFastify.port())
+      t.truthy(revaneFastify.port())
       revaneFastify.close()
     })
 })
@@ -101,13 +100,13 @@ test('Should call after', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .register(fastifyPlugin(plugin))
-    .after((err) => t.error(err))
+    .after((err) => t.falsy(err))
     .ready()
     .listen()
     .then(() => {
-      t.ok(revaneFastify.port())
+      t.truthy(revaneFastify.port())
       revaneFastify.close()
     })
 })
@@ -119,17 +118,17 @@ test('Should use middleware', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .use((req, res, next) => next())
     .ready()
     .listen()
     .then(() => {
-      t.ok(revaneFastify.port())
+      t.truthy(revaneFastify.port())
       revaneFastify.close()
     })
 })
 
-test('Should set not found handler', (t) => {
+test.cb('Should set not found handler', (t) => {
   t.plan(4)
 
   const options = {
@@ -151,15 +150,16 @@ test('Should set not found handler', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/test`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 404)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 404)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should set not found handler by id', (t) => {
+test.cb('Should set not found handler by id', (t) => {
   t.plan(4)
 
   const options = {
@@ -178,15 +178,16 @@ test('Should set not found handler by id', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/test`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 404)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 404)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should set error handler by id', (t) => {
+test.cb('Should set error handler by id', (t) => {
   t.plan(3)
 
   const options = {
@@ -210,15 +211,16 @@ test('Should set error handler by id', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 500)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 500)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should set error handler', (t) => {
+test.cb('Should set error handler', (t) => {
   t.plan(4)
 
   const options = {
@@ -233,7 +235,7 @@ test('Should set error handler', (t) => {
       next()
     }))
     .setErrorHandler(function (error, request, reply) {
-      t.ok(error)
+      t.truthy(error)
       reply.code(500)
         .send('test')
     })
@@ -246,15 +248,16 @@ test('Should set error handler', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 500)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 500)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should start server', (t) => {
+test.cb('Should start server', (t) => {
   t.plan(3)
 
   const options = {
@@ -272,19 +275,21 @@ test('Should start server', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 200)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should start server using addressProvider', (t) => {
+test.cb('Should start server using addressProvider', (t) => {
   t.plan(3)
 
   const options = {
-    port: 0
+    port: 0,
+    silent: true
   }
   const revaneFastify = new RevaneFastify(options, revane)
   revaneFastify
@@ -298,15 +303,16 @@ test('Should start server using addressProvider', (t) => {
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 200)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
 
-test('Should start server using addressProvider and registerControllers', (t) => {
+test.cb('Should start server using addressProvider and registerControllers', (t) => {
   t.plan(3)
 
   const options = {
@@ -324,10 +330,11 @@ test('Should start server using addressProvider and registerControllers', (t) =>
         method: 'GET',
         uri: `http://localhost:${port}/`
       }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 200)
-        t.strictEqual(body.toString(), 'test')
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'test')
         revaneFastify.close()
+        t.end()
       })
     })
 })
@@ -339,15 +346,16 @@ test('listen should call callback with string', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .registerControllers()
     .register(fastifyPlugin(plugin))
     .listen('config')
     .then((address) => {
-      t.ok(typeof address === 'string')
+      t.true(typeof address === 'string')
       revaneFastify.close()
     })
 })
+
 test('should register plugin without name', (t) => {
   t.plan(1)
 
@@ -355,12 +363,12 @@ test('should register plugin without name', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .registerControllers()
     .register(fastifyPlugin((instance, options, next) => next()))
     .listen('config')
     .then((address) => {
-      t.ok(typeof address === 'string')
+      t.true(typeof address === 'string')
       revaneFastify.close()
     })
 })
@@ -372,11 +380,11 @@ test('Should handle error in plugin in listen', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .register(errorPlugin)
     .listen()
     .catch((err) => {
-      t.ok(err)
+      t.truthy(err)
     })
 })
 
@@ -387,12 +395,12 @@ test('Should handle error in plugin in ready', (t) => {
     port: 0
   }
   const revaneFastify = new RevaneFastify(options, revane)
-  revaneFastify
+  return revaneFastify
     .register(errorPlugin)
-    .ready((err) => t.ok(err))
+    .ready((err) => t.truthy(err))
     .listen()
     .catch((err) => {
-      t.ok(err)
+      t.truthy(err)
     })
 })
 

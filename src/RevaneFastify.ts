@@ -1,10 +1,11 @@
 'use strict'
 
 import { Options } from './Options'
-import { Plugin, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
+import { Plugin, FastifyRequest, FastifyReply, FastifyInstance, ServerOptions } from 'fastify'
 import { IncomingMessage, ServerResponse, Server } from 'http'
 import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'http2'
 import { BeanProvider } from './BeanProvider'
+import { isDecoratorDriven, buildPlugin } from './DecoratorDriven'
 
 type HttpServer = (Server | Http2Server)
 type HttpRequest = (IncomingMessage | Http2ServerRequest)
@@ -19,6 +20,7 @@ type Controller = {
 }
 
 export * from './BeanProvider'
+export * from './Decorators'
 
 export default class RevaneFastify {
   private options: Options
@@ -29,6 +31,7 @@ export default class RevaneFastify {
 
   constructor (options: Options, beanProvider: BeanProvider) {
     this.options = options
+
     this.server = Fastify()
     this.beanProvider = beanProvider
   }
@@ -44,7 +47,11 @@ export default class RevaneFastify {
     this.promise = this.promise.then(() => {
       if (typeof plugin === 'string') {
         const pluginById = this.beanProvider.get(plugin)
-        this.registerPlugin(pluginById)
+        if (isDecoratorDriven(pluginById)) {
+          this.server.register(buildPlugin(pluginById))
+        } else {
+          this.registerPlugin(pluginById)
+        }
       } else {
         this.server.register(plugin, options)
       }
@@ -72,9 +79,7 @@ export default class RevaneFastify {
   }
 
   public close (): Promise<void> {
-    return new Promise((resolve) => {
-      this.server.close(() => resolve())
-    })
+    return this.server.close()
   }
 
   public port (): number {

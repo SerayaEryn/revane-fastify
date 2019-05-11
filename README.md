@@ -117,3 +117,42 @@ fastifyRevane.setNotFoundHandler((error, request, reply) => {
 #### after(handler)
 Executes the `handler` function after the current plugin has been added.<br>
 **Note**: This will be executed asynchronous.
+
+## Controllers
+
+It is possible to create controllers using decorators.
+
+```js
+import { Get, Param } from 'revane-fastify'
+
+class UserController {
+  @Get('/user/:id')
+  getUser (@Param id) {
+    return {
+      id
+    }
+  }
+
+  @Get('/users/')
+  getUsers () {
+    return []
+  }
+}
+```
+
+There are decorators for the http methods:
+
+* Get(url, [options])
+* Post(url, [options])
+* Put(url, [options])
+* Delete(url, [options])
+* Patch(url, [options])
+
+Furthermore there are decorators that provide information from the `request` and the `reply` itself.
+
+* Query
+* Cookie
+* Param
+* Body
+* Header
+* Reply

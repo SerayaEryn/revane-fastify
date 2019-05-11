@@ -1,0 +1,12 @@
+{
+  "include": [
+    "bin/src/**/*.js"
+  ],
+  "exclude": [
+    "testdata/**",
+    "bin/test/**",
+    "bin/testdata/**"
+  ],
+  "all": true,
+  "check-coverage": true
+}
