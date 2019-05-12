@@ -22,20 +22,31 @@ function createMethodDecorator (method: string): Function {
 }
 
 function createParameterDecorator (type: string): Function {
-  return function decorate (target: Object, propertyKey: string | symbol, parameterIndex: number) {
-    const routes = Reflect.getMetadata('routes', target)
-    const functionSource = target[propertyKey].toString()
-    const ast = esprima.parse('function ' + functionSource)
-    const name = ast.body[0].params[parameterIndex].name
-    if (!routes[propertyKey]) {
-      const parameters = [ { type, name } ]
-      routes[propertyKey] = { parameters }
+  return function parameterDecorator (maybeName: string | Object, maybePropertyKey?: string | symbol, maybeParameterIndex?: number) {
+    if (typeof maybeName === 'string' || maybeName === undefined) {
+      return function decorate (target: Object, propertyKey: string | symbol, parameterIndex: number) {
+        addParameterMetadata(target, maybeName as string, propertyKey, parameterIndex, type)
+      }
     } else {
-      routes[propertyKey].parameters.push({ type, name })
+      addParameterMetadata(maybeName, null, maybePropertyKey, maybeParameterIndex, type)
     }
-    routes[propertyKey].parameters.reverse()
-    Reflect.defineMetadata('routes', routes, target)
   }
+}
+
+function addParameterMetadata (target: Object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string) {
+  const routes = Reflect.getMetadata('routes', target)
+  const name = maybeName ? maybeName : getName(target, propertyKey, parameterIndex)
+  if (!routes[propertyKey]) {
+    routes[propertyKey] = { parameters: [] }
+  }
+  routes[propertyKey].parameters.unshift({ type, name })
+  Reflect.defineMetadata('routes', routes, target)
+}
+
+function getName (target: Object, propertyKey: string | symbol, parameterIndex: number): string {
+  const functionSource = target[propertyKey].toString()
+  const ast = esprima.parse('function ' + functionSource)
+  return ast.body[0].params[parameterIndex].name
 }
 
 const Query = createParameterDecorator('query')

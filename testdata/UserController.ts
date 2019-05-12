@@ -1,4 +1,4 @@
-import { Get, Param, Reply, Query } from '../src/Decorators'
+import { Get, Param, Reply, Query, Header } from '../src/Decorators'
 
 export class UserController {
   @Get('/user')
@@ -7,24 +7,29 @@ export class UserController {
   }
 
   @Get('/user/:id')
-  userById (@Param id) {
+  userById (@Param() id) {
     return id
   }
 
+  @Get('/header')
+  getHeader (@Header('x-test') header) {
+    return header
+  }
+
   @Get('/users/:country')
-  getUsers (@Param country, @Query ids) {
+  getUsers (@Param country, @Query() ids) {
     return country + ids
   }
 
   @Get('/error')
-  error (@Reply reply) {
+  error (@Reply() reply) {
     reply.setHeader('test', 'booom')
     reply.status(500)
     return reply.getHeader('test')
   }
 
   @Get('/gone')
-  redirect (@Reply reply) {
+  redirect (@Reply() reply) {
     reply.redirect('/error')
   }
 }

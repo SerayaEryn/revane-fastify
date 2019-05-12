@@ -44,6 +44,35 @@ test.cb('get', (t) => {
     })
 })
 
+test.cb('get - alternate name', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/header`,
+        headers: {
+          'x-test': 'test'
+        }
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'test')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
 test.cb('multiple parameters', (t) => {
   t.plan(3)
 
