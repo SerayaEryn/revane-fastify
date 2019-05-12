@@ -7,7 +7,7 @@ import {
   PluginOptions
 } from './FastifyTypes'
 import { RevaneFastifyReply } from './RevaneFastifyReply'
-import { decoratorDriven } from './Symbols'
+import { decoratorDrivenSym, routesSym } from './Symbols'
 
 type Parameter = {
   type: string,
@@ -22,11 +22,11 @@ type Route = {
 }
 
 export function isDecoratorDriven (target): boolean {
-  return Reflect.getMetadata(decoratorDriven, target) === true
+  return Reflect.getMetadata(decoratorDrivenSym, target) === true
 }
 
 export function buildPlugin (target): FastifyPlugin {
-  const routes = Reflect.getMetadata('routes', target)
+  const routes = Reflect.getMetadata(routesSym, target)
   // tslint:disable-next-line: no-inner-declarations
   function plugin (fastify: FastifyInstance, options: PluginOptions, next) {
     for (const key in routes) {

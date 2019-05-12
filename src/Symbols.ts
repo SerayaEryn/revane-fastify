@@ -1,3 +1,7 @@
-const decoratorDriven = Symbol('revane.DecoratorDrivenController')
+const decoratorDrivenSym = Symbol('revane.DecoratorDrivenController')
+const routesSym = Symbol('revane.Routes')
 
-export { decoratorDriven }
+export {
+  decoratorDrivenSym,
+  routesSym
+}

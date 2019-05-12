@@ -1,12 +1,12 @@
 import 'reflect-metadata'
 import * as esprima from 'esprima'
-import { decoratorDriven } from './Symbols'
+import { decoratorDrivenSym, routesSym } from './Symbols'
 
 function createMethodDecorator (method: string): Function {
   return function methodDecorator (url: string, options?: any) {
     return function decorate (target, propertyKey: string, descriptor: PropertyDescriptor) {
-      Reflect.defineMetadata(decoratorDriven, true, target)
-      const routes = Reflect.getMetadata('routes', target) || {}
+      Reflect.defineMetadata(decoratorDrivenSym, true, target)
+      const routes = Reflect.getMetadata(routesSym, target) || {}
       const handler = target[propertyKey].bind(target)
       if (!routes[propertyKey]) {
         routes[propertyKey] = { method, url, options, handler }
@@ -16,7 +16,7 @@ function createMethodDecorator (method: string): Function {
         routes[propertyKey].options = options
         routes[propertyKey].handler = handler
       }
-      Reflect.defineMetadata('routes', routes, target)
+      Reflect.defineMetadata(routesSym, routes, target)
     }
   }
 }
@@ -34,13 +34,13 @@ function createParameterDecorator (type: string): Function {
 }
 
 function addParameterMetadata (target: Object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string) {
-  const routes = Reflect.getMetadata('routes', target)
+  const routes = Reflect.getMetadata(routesSym, target)
   const name = maybeName ? maybeName : getName(target, propertyKey, parameterIndex)
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] }
   }
   routes[propertyKey].parameters.unshift({ type, name })
-  Reflect.defineMetadata('routes', routes, target)
+  Reflect.defineMetadata(routesSym, routes, target)
 }
 
 function getName (target: Object, propertyKey: string | symbol, parameterIndex: number): string {
