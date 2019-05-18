@@ -1,4 +1,4 @@
-import { Get, Param, Reply, Query, Header } from '../src/Decorators'
+import { Get, Param, Reply, Query, Header, Cookie } from '../src/Decorators'
 
 export class UserController {
   @Get('/user')
@@ -31,5 +31,10 @@ export class UserController {
   @Get('/gone')
   redirect (@Reply() reply) {
     reply.redirect('/error')
+  }
+
+  @Get('/cookie')
+  getCookie (@Cookie test) {
+    return test
   }
 }

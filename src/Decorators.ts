@@ -51,7 +51,7 @@ function getName (target: Object, propertyKey: string | symbol, parameterIndex: 
 
 const Query = createParameterDecorator('query')
 const Param = createParameterDecorator('params')
-const Cookie = createParameterDecorator('cookie')
+const Cookie = createParameterDecorator('cookies')
 const Body = createParameterDecorator('body')
 const Reply = createParameterDecorator('reply')
 const Header = createParameterDecorator('headers')
