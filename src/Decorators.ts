@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import * as esprima from 'esprima'
 import { decoratorDrivenSym, routesSym } from './Symbols'
 
-function createMethodDecorator (method: string): Function {
+function createMethodDecorator (method: string | string[]): Function {
   return function methodDecorator (url: string, options?: any) {
     return function decorate (target, propertyKey: string, descriptor: PropertyDescriptor) {
       Reflect.defineMetadata(decoratorDrivenSym, true, target)
@@ -63,5 +63,8 @@ const Post = createMethodDecorator('POST')
 const Put = createMethodDecorator('PUT')
 const Delete = createMethodDecorator('DELETE')
 const Patch = createMethodDecorator('PATCH')
+const Head = createMethodDecorator('HEAD')
+const Options = createMethodDecorator('OPTIONS')
+const All = createMethodDecorator([ 'GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'DELETE', 'OPTIONS'])
 
-export { Get, Post, Put, Delete, Patch }
+export { Get, Post, Put, Delete, Patch, Head, Options, All }

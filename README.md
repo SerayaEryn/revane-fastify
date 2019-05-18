@@ -147,6 +147,9 @@ There are decorators for the http methods:
 * Put(url, [options])
 * Delete(url, [options])
 * Patch(url, [options])
+* Head(url, [options])
+* Options(url, [options])
+* All(url, [options])
 
 Furthermore there are decorators that provide information from the `request` and the `reply` itself.
 

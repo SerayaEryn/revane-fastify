@@ -1,9 +1,14 @@
-import { Get, Param, Reply, Query, Header, Cookie } from '../src/Decorators'
+import { Get, Param, Reply, Query, Header, Cookie, All } from '../src/Decorators'
 
 export class UserController {
   @Get('/user')
   user (request, reply) {
     reply.send('hello world')
+  }
+
+  @All('/something')
+  async something (request, reply) {
+    return 'hello world'
   }
 
   @Get('/user/:id')
