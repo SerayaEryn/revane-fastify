@@ -158,4 +158,12 @@ Furthermore there are decorators that provide information from the `request` and
 * Param
 * Body
 * Header
+
 * Reply
+
+* Log
+* Headers
+* Params
+* QueryParameters
+* RequestBody
+* Cookies

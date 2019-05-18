@@ -127,7 +127,37 @@ test.cb('should pass cookie value to handler', (t) => {
     })
 })
 
-test.cb('get - alternate name', (t) => {
+test.cb('should pass cookie values to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register(fastifyCookie)
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/cookies`,
+        headers: {
+          cookie: 'test=hello world; Path=/; HttpOnly',
+        }
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass header value to handler with alternate name', (t) => {
   t.plan(3)
 
   const options = {
@@ -156,7 +186,36 @@ test.cb('get - alternate name', (t) => {
     })
 })
 
-test.cb('multiple parameters', (t) => {
+test.cb('should pass header values to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/headers`,
+        headers: {
+          'x-test': 'test'
+        }
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass multiple parameters to handler', (t) => {
   t.plan(3)
 
   const options = {
@@ -182,7 +241,7 @@ test.cb('multiple parameters', (t) => {
     })
 })
 
-test.cb('get with param', (t) => {
+test.cb('should pass param value to handler', (t) => {
   t.plan(3)
 
   const options = {
@@ -202,6 +261,144 @@ test.cb('get with param', (t) => {
         t.falsy(err)
         t.is(response.statusCode, 200)
         t.is(body.toString(), '42')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass param values to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/user2/42`
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass logger to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/log`
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass query parameters to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'GET',
+        uri: `http://localhost:${port}/queryParameters`
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should execute post request', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'POST',
+        uri: `http://localhost:${port}/post`,
+        body: {
+          test: 'hello world'
+        },
+        json: true
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'hello world')
+        revaneFastify.close()
+        t.end()
+      })
+    })
+})
+
+test.cb('should pass request body to handler', (t) => {
+  t.plan(3)
+
+  const options = {
+    port: 0
+  }
+  const revaneFastify = new RevaneFastify(options, beanProvider)
+  revaneFastify
+    .register('userController')
+    .listen()
+    .then(() => {
+      revaneFastify.server.server.unref()
+      const port = revaneFastify.port()
+      request({
+        method: 'POST',
+        uri: `http://localhost:${port}/requestpost`,
+        body: {
+          test: 'hello world'
+        },
+        json: true
+      }, (err, response, body) => {
+        t.falsy(err)
+        t.is(response.statusCode, 200)
+        t.is(body.toString(), 'true')
         revaneFastify.close()
         t.end()
       })

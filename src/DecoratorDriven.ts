@@ -11,7 +11,8 @@ import { decoratorDrivenSym, routesSym } from './Symbols'
 
 type Parameter = {
   type: string,
-  name: string
+  name: string,
+  all: boolean
 }
 type Route = {
   url: string,
@@ -64,7 +65,11 @@ function buildArgsString (parameters: Parameter[]): string {
     if (parameter.type === 'reply') {
       args.push('new RevaneFastifyReply(reply)')
     } else {
-      args.push(`request['${parameter.type}']['${parameter.name}']`)
+      if (parameter.all) {
+        args.push(`request['${parameter.type}']`)
+      } else {
+        args.push(`request['${parameter.type}']['${parameter.name}']`)
+      }
     }
   }
   return args.join(', ')
