@@ -14,15 +14,15 @@ npm install revane-fastify --save
 
 ```js
 const RevaneFastify = require('revane-fastify');
-const Revane = require('revane');
+const BeanProvider = require('revane-ioc');
 
-const revane = new Revane({
+const beanProvider = new BeanProvider({
   basePackage: __dirname
 });
 const options = {
   port: 3000
 };
-const revaneFastify = new RevaneFastify(options, revane);
+const revaneFastify = new RevaneFastify(options, beanProvider);
 return revaneFastify
     .setNotFoundHandler((err, request, reply) => {
       // ...
@@ -49,7 +49,7 @@ return revaneFastify
 
 ## API
 
-### new RevaneFastify(options, revane)
+### new RevaneFastify(options, beanProvider)
 
 #### options
 
