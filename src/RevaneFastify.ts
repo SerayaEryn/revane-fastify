@@ -184,6 +184,3 @@ function isPlugin (func) {
 export {
   FastifyInstance
 } from 'fastify'
-
-module.exports = RevaneFastify
-module.exports.default = RevaneFastify
