@@ -1,6 +1,6 @@
 {
   "name": "revane-fastify",
-  "version": "3.4.0",
+  "version": "4.0.0",
   "description": "",
   "main": "bin/src/RevaneFastify.js",
   "scripts": {
