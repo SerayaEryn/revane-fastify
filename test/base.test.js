@@ -3,7 +3,7 @@
 const fastifyPlugin = require('fastify-plugin')
 const request = require('request')
 const test = require('ava')
-const RevaneFastify = require('..')
+const RevaneFastify = require('..').default
 
 const revane = {
   get (key) {

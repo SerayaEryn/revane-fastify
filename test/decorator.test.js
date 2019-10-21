@@ -1,7 +1,7 @@
 'use strict'
 
 const test = require('ava')
-const RevaneFastify = require('..')
+const RevaneFastify = require('..').default
 const request = require('request')
 const fastifyCookie = require('fastify-cookie')
 
