@@ -1,6 +1,6 @@
 # revane-fastify
 
-[![Build Status](https://travis-ci.org/SerayaEryn/revane-fastify.svg?branch=master)](https://travis-ci.org/SerayaEryn/revane-fastify)
+![Build Status](https://github.com/SerayaEryn/revane-fastify/workflows/ci/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/SerayaEryn/revane-fastify/badge.svg?branch=master)](https://coveralls.io/github/SerayaEryn/revane-fastify?branch=master) 
 [![NPM version](https://img.shields.io/npm/v/revane-fastify.svg?style=flat)](https://www.npmjs.com/package/revane-fastify) 
 
