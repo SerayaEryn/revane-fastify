@@ -15,7 +15,7 @@
   "author": "Denis Fäcke",
   "license": "MIT",
   "engines": {
-    "node": ">=10.13.0"
+    "node": ">=12.13.0"
   },
   "devDependencies": {
     "@types/node": "^14.0.0",
