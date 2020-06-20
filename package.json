@@ -45,5 +45,5 @@
     "type": "git",
     "url": "git+https://github.com/SerayaEryn/revane-fastify.git"
   },
-  "typings": "bin/src/RevaneFastify.d.ts"
+  "typings": "bin/src/RevaneFastify.d.ts",
 }
