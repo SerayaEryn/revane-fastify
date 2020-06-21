@@ -31,14 +31,14 @@ export function buildPlugin (target): FastifyPlugin {
   // tslint:disable-next-line: no-inner-declarations
   function plugin (fastify: FastifyInstance, options: PluginOptions, next) {
     for (const key in routes) {
-      const route: Route = routes[key]
+      const route: any = routes[key]
       const options = route.options || {} as FastifyRouteOptions
       options.url = route.url
       options.method = route.method
       if (route.parameters) {
-        options.handler = buildHandler(route.parameters, route.handler)
+        options.handler = buildHandler(route.parameters, target[route.handlerFunction].bind(target))
       } else {
-        options.handler = route.handler as FastifyRequestHandler
+        options.handler = target[route.handlerFunction].bind(target) as FastifyRequestHandler
       }
       fastify.route(options)
     }

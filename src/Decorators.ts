@@ -7,14 +7,14 @@ function createMethodDecorator (method: string | string[]): Function {
     return function decorate (target, propertyKey: string, descriptor: PropertyDescriptor) {
       Reflect.defineMetadata(decoratorDrivenSym, true, target)
       const routes = Reflect.getMetadata(routesSym, target) || {}
-      const handler = target[propertyKey].bind(target)
+      const handlerFunction = propertyKey
       if (!routes[propertyKey]) {
-        routes[propertyKey] = { method, url, options, handler }
+        routes[propertyKey] = { method, url, options, handlerFunction }
       } else {
         routes[propertyKey].method = method
         routes[propertyKey].url = url
         routes[propertyKey].options = options
-        routes[propertyKey].handler = handler
+        routes[propertyKey].handlerFunction = handlerFunction
       }
       Reflect.defineMetadata(routesSym, routes, target)
     }
