@@ -70,7 +70,11 @@ export default class RevaneFastify {
     await this.promise
     const controllers = await this.context.getByType('controller')
     for (const controller of controllers) {
-      this.registerPlugin(controller)
+      if (isDecoratorDriven(controller)) {
+        this.server.register(buildPlugin(controller))
+      } else {
+        this.registerPlugin(controller)
+      }
     }
   }
 

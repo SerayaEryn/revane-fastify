@@ -40,8 +40,11 @@ function createRequestValueParameterDecorator (type: string) {
 }
 
 function addParameterMetadata (target: Object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string, all: boolean) {
-  const routes = Reflect.getMetadata(routesSym, target)
+  let routes = Reflect.getMetadata(routesSym, target)
   const name = maybeName ? maybeName : getName(target, propertyKey, parameterIndex)
+  if (!routes) {
+    routes = {}
+  }
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] }
   }
