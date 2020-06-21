@@ -163,8 +163,8 @@ export default class RevaneFastify {
     let port: number
     if (typeof addressProviderId === 'string') {
       const addressProvider = await this.context.get(addressProviderId)
-      host = addressProvider.get(this.options.hostKey || 'fastify.host')
-      port = addressProvider.get(this.options.portKey || 'fastify.port')
+      host = addressProvider.get(this.options.hostKey || 'revane.server.host')
+      port = addressProvider.get(this.options.portKey || 'revane.server.port')
     } else {
       host = this.options.host
       port = this.options.port
@@ -173,7 +173,7 @@ export default class RevaneFastify {
   }
 
   private async logStartUp (): Promise<void> {
-    if (!this.options.silent && this.context.has('logger')) {
+    if (!this.options.silent && await this.context.has('logger')) {
       const logger = await this.context.get('logger')
       logger.info(`Fastify started on port: ${this.port()}`)
       const startUpTime = Date.now() - this.startTime
