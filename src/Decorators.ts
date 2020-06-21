@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import * as esprima from 'esprima'
+import { parse } from 'acorn'
 import { decoratorDrivenSym, routesSym } from './Symbols'
 
 function createMethodDecorator (method: string | string[]): Function {
@@ -59,7 +59,7 @@ function getName (target: Object, propertyKey: string | symbol, parameterIndex: 
   } else {
     functionSource = 'function ' + functionSource
   }
-  const ast = esprima.parse(functionSource)
+  const ast = parse(functionSource) as any
   return ast.body[0].params[parameterIndex].name
 }
 
