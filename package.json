@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "acorn": "^8.0.1",
-    "fastify": "^2.1.0",
+    "fastify": "^3.9.2",
     "fastify-plugin": "^1.5.0",
     "reflect-metadata": "^0.1.13",
     "revane-ioc": "^2.0.0-rc.2"
