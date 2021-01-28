@@ -111,7 +111,7 @@ export default class RevaneFastify {
             if (err) {
               reject(err)
             } else {
-              resolve()
+              resolve(null)
             }
           })
         })
