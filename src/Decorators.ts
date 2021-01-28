@@ -59,7 +59,7 @@ function getName (target: Object, propertyKey: string | symbol, parameterIndex: 
   } else {
     functionSource = 'function ' + functionSource
   }
-  const ast = parse(functionSource) as any
+  const ast = parse(functionSource, { ecmaVersion: 'latest' }) as any
   return ast.body[0].params[parameterIndex].name
 }
 
