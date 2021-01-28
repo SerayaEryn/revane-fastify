@@ -71,9 +71,9 @@ const Header = createRequestSubValueParameterDecorator('headers')
 
 export { Query, Param, Cookie, Body, Header }
 
-const Reply = createRequestSubValueParameterDecorator('reply')
+const Response = createRequestSubValueParameterDecorator('reply')
 
-export { Reply }
+export { Response }
 
 const Cookies = createRequestValueParameterDecorator('cookies')
 const Params = createRequestValueParameterDecorator('params')

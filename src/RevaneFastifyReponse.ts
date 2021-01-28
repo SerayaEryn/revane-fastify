@@ -1,18 +1,14 @@
-import { RevaneReply } from './RevaneReply'
+import { RevaneResponse } from './RevaneResponse'
 import { Reply } from './FastifyTypes'
 
-export class RevaneFastifyReply implements RevaneReply {
-  private reply: Reply
-
-  constructor (reply: Reply) {
-    this.reply = reply
-  }
+export class RevaneFastifyResponse implements RevaneResponse {
+  constructor (private reply: Reply) {}
 
   redirect (status: any, url?: any) {
     this.reply.redirect(status, url)
   }
 
-  status (statusCode: number): RevaneReply {
+  status (statusCode: number): RevaneResponse {
     this.reply.status(statusCode)
     return this
   }
@@ -21,7 +17,8 @@ export class RevaneFastifyReply implements RevaneReply {
     return this.reply.getHeader(name)
   }
 
-  setHeader (name: string, value: any): void {
+  setHeader (name: string, value: any): RevaneResponse {
     this.reply.header(name, value)
+    return this
   }
 }

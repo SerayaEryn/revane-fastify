@@ -6,7 +6,7 @@ import {
   FastifyPlugin,
   PluginOptions
 } from './FastifyTypes'
-import { RevaneFastifyReply } from './RevaneFastifyReply'
+import { RevaneFastifyResponse } from './RevaneFastifyReponse'
 import { decoratorDrivenSym, routesSym } from './Symbols'
 
 type Parameter = {
@@ -50,7 +50,7 @@ export function buildPlugin (target): FastifyPlugin {
 function buildHandler (parameters: Parameter[], handler: Function): FastifyRequestHandler {
   const src = buildHandlerString(parameters)
   const handlerFunction = new Function('handler', 'RevaneFastifyReply', src)
-  return handlerFunction(handler, RevaneFastifyReply)
+  return handlerFunction(handler, RevaneFastifyResponse)
 }
 
 function buildHandlerString (parameters: Parameter[]): string {

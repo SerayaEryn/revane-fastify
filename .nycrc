@@ -9,7 +9,8 @@
     "bin/src/BeanProvider.js",
     "bin/src/FastifyTypes.js",
     "bin/src/RevaneReply.js",
-    "bin/src/Options.js"
+    "bin/src/Options.js",
+    "bin/src/RevaneResponse.js"
   ],
   "reporter": [
     "lcov",

@@ -6,6 +6,7 @@ import { IncomingMessage, ServerResponse, Server } from 'http'
 import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'http2'
 import { isDecoratorDriven, buildPlugin } from './DecoratorDriven'
 import { ApplicationContext } from 'revane-ioc'
+import { RevaneResponse } from './RevaneResponse'
 
 type HttpServer = (Server | Http2Server)
 type HttpRequest = (IncomingMessage | Http2ServerRequest)
@@ -20,6 +21,9 @@ type Controller = {
 }
 
 export * from './Decorators'
+export {
+  RevaneResponse
+}
 
 export default class RevaneFastify {
   private options: Options

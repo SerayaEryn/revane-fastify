@@ -1,7 +1,7 @@
 import {
   Get,
   Param,
-  Reply,
+  Response,
   Query,
   Header,
   Cookie,
@@ -15,6 +15,7 @@ import {
   Cookies,
   Post
 } from '../src/Decorators'
+import { RevaneResponse } from '../src/RevaneFastify'
 
 export class UserController {
   @Get('/user')
@@ -53,14 +54,14 @@ export class UserController {
   }
 
   @Get('/error')
-  error (@Reply() reply) {
+  error (@Response() reply) {
     reply.setHeader('test', 'booom')
     reply.status(500)
     return reply.getHeader('test')
   }
 
   @Get('/gone')
-  redirect (@Reply() reply) {
+  redirect (@Response() reply: RevaneResponse) {
     reply.redirect('/error')
   }
 
