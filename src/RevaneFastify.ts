@@ -1,22 +1,16 @@
 'use strict'
 
 import { Options } from './Options'
-import { Plugin, FastifyRequest, FastifyReply, FastifyInstance, ServerOptions } from 'fastify'
+import fastify, { FastifyPluginCallback, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
 import { IncomingMessage, ServerResponse, Server } from 'http'
-import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'http2'
-import { isDecoratorDriven, buildPlugin } from './DecoratorDriven'
+import { isDecoratorDriven, buildPlugin, buildGlobalErrorHandler } from './DecoratorDriven'
 import { ApplicationContext } from 'revane-ioc'
 import { RevaneResponse } from './RevaneResponse'
-
-type HttpServer = (Server | Http2Server)
-type HttpRequest = (IncomingMessage | Http2ServerRequest)
-type HttpResponse = (ServerResponse | Http2ServerResponse)
-
-const Fastify = require('fastify')
-const fastifyPlugin = require('fastify-plugin')
+import fastifyPlugin from 'fastify-plugin'
+import fastifyCookie from 'fastify-cookie'
 
 type Controller = {
-  plugin: Plugin<HttpServer, HttpRequest, HttpResponse, any>
+  plugin: FastifyPluginCallback
   options?: any
 }
 
@@ -25,42 +19,44 @@ export {
   RevaneResponse
 }
 
-export default class RevaneFastify {
-  private options: Options
+export function revaneFastify (options: Options, context: ApplicationContext): RevaneFastify {
+  const instance = new RevaneFastify(options, context)
+  return instance.initialize()
+}
+
+export class RevaneFastify {
   private promise: Promise<any> = Promise.resolve()
-  private server: FastifyInstance
-  private context: ApplicationContext
-  private startTime: number = Date.now()
+  private readonly server: FastifyInstance
+  private readonly startTime: number = Date.now()
 
-  constructor (options: Options, context: ApplicationContext) {
-    this.options = options
-
-    this.server = Fastify()
-    this.context = context
+  constructor (
+    private readonly options: Options,
+    private readonly context: ApplicationContext
+  ) {
+    this.server = fastify()
   }
 
-  public use (middleware: (req: IncomingMessage, res: ServerResponse, next: Function) => void): RevaneFastify {
-    this.promise = this.promise.then(() => {
-      this.server.use(middleware)
-    })
-    return this
+  public initialize (): RevaneFastify {
+    return this.register(fastifyCookie, {})
   }
 
-  public register (plugin: string | (Plugin<HttpServer, HttpRequest, HttpResponse, any>), options: any): RevaneFastify {
+  public register (plugin: string | FastifyPluginCallback, options: any): RevaneFastify {
     this.promise = this.registerAsync(plugin, options)
     return this
   }
 
-  private async registerAsync (plugin: string | (Plugin<HttpServer, HttpRequest, HttpResponse, any>), options: any): Promise<void> {
+  private async registerAsync (plugin: string | FastifyPluginCallback, options: any): Promise<void> {
     await this.promise
     if (typeof plugin === 'string') {
       const pluginById = await this.context.get(plugin)
       if (isDecoratorDriven(pluginById)) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.server.register(buildPlugin(pluginById))
       } else {
         this.registerPlugin(pluginById)
       }
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.server.register(plugin, options)
     }
   }
@@ -70,15 +66,30 @@ export default class RevaneFastify {
     return this
   }
 
-  private async registerControllersAsync () {
+  private async registerControllersAsync (): Promise<void> {
     await this.promise
     const controllers = await this.context.getByType('controller')
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.server.register(buildPlugin(controller))
       } else {
         this.registerPlugin(controller)
       }
+    }
+  }
+
+  public registerGlobalErrorHandler (): RevaneFastify {
+    this.promise = this.registerGlobalErrorHandlerAsync()
+    return this
+  }
+
+  private async registerGlobalErrorHandlerAsync (): Promise<void> {
+    await this.promise
+    const controllerAdvices = await this.context.getByType('controlleradvice')
+    const errorHandler = buildGlobalErrorHandler(controllerAdvices)
+    if (errorHandler != null) {
+      this.server.setErrorHandler(errorHandler as any)
     }
   }
 
@@ -91,8 +102,9 @@ export default class RevaneFastify {
     return address
   }
 
-  public close (): Promise<void> {
-    return this.server.close()
+  public async close (): Promise<void> {
+    // tslint disable-next-line
+    return await this.server.close()
   }
 
   public port (): number {
@@ -102,29 +114,33 @@ export default class RevaneFastify {
 
   public ready (callback: (err?: Error, fastify?: FastifyInstance<Server, IncomingMessage, ServerResponse>) => void): RevaneFastify {
     this.promise = this.promise
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          this.server.ready((err) => {
-            if (callback) {
-              callback(err, this.server)
-            }
-            if (err) {
-              reject(err)
-            } else {
-              resolve(null)
-            }
-          })
+      .then(async () => {
+        return await new Promise((resolve, reject) => {
+          this.server.ready()
+            .then(
+              () => {
+                if (callback) {
+                  callback(null, this.server)
+                }
+                resolve(null)
+              },
+              (err) => {
+                if (callback) {
+                  callback(err, this.server)
+                }
+                reject(err)
+              })
         })
       })
     return this
   }
 
-  public setErrorHandler (handler: string | ((error: Error, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)): RevaneFastify {
+  public setErrorHandler (handler: string | ((error: Error, request: FastifyRequest, reply: FastifyReply) => void)): RevaneFastify {
     this.promise = this.setErrorHandlerAsync(handler)
     return this
   }
 
-  private async setErrorHandlerAsync (handler: string | ((error: Error, request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)) {
+  private async setErrorHandlerAsync (handler: string | ((error: Error, request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
     await this.promise
     if (typeof handler === 'string') {
       const errorHandler = await this.context.get(handler)
@@ -134,12 +150,12 @@ export default class RevaneFastify {
     }
   }
 
-  public setNotFoundHandler (handler: string | ((request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)): RevaneFastify {
+  public setNotFoundHandler (handler: string | ((request: FastifyRequest, reply: FastifyReply) => void)): RevaneFastify {
     this.promise = this.setNotFoundHandlerAsync(handler)
     return this
   }
 
-  private async setNotFoundHandlerAsync (handler: string | ((request: FastifyRequest<HttpRequest>, reply: FastifyReply<HttpResponse>) => void)) {
+  private async setNotFoundHandlerAsync (handler: string | ((request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
     await this.promise
     if (typeof handler === 'string') {
       const notFoundHandler = await this.context.get(handler)
@@ -163,10 +179,11 @@ export default class RevaneFastify {
       plugin.plugin = fastifyPlugin(plugin.plugin)
     }
     const opts = plugin.options || {}
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.server.register(plugin.plugin, opts)
   }
 
-  private async getHostAndPort (addressProviderId?: string) {
+  private async getHostAndPort (addressProviderId?: string): Promise<{host: string, port: number}> {
     let host: string
     let port: number
     if (typeof addressProviderId === 'string') {
@@ -190,11 +207,11 @@ export default class RevaneFastify {
   }
 }
 
-function isBindable (func) {
+function isBindable (func): boolean {
   return func.name && !func.name.startsWith('bound')
 }
 
-function isPlugin (func) {
+function isPlugin (func): boolean {
   return func[Symbol.for('skip-override')] === true
 }
 

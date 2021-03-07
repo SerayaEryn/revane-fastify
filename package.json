@@ -6,7 +6,7 @@
   "scripts": {
     "unit": "ava test/*.test.js",
     "test": "npm run compile && npm run lint && npm run unit",
-    "lint": "tslint --project tsconfig.json --config tslint.yaml",
+    "lint": "eslint src/**",
     "coveralls": "nyc npm test",
     "coverage": "nyc npm test && nyc report --reporter=html",
     "compile": "tsc -d",
@@ -19,19 +19,23 @@
   },
   "devDependencies": {
     "@types/node": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
     "ava": "^3.6.0",
-    "fastify-cookie": "^3.0.2",
+    "eslint": "^7.18.0",
+    "eslint-config-standard-with-typescript": "^20.0.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^5.0.0",
     "nyc": "^15.0.0",
     "request": "^2.87.0",
-    "standard": "^14.3.1",
-    "tslint": "^6.0.0",
-    "tslint-config-standard": "^9.0.0",
     "typescript": "^4.0.3"
   },
   "dependencies": {
     "acorn": "^8.0.1",
-    "fastify": "^2.1.0",
-    "fastify-plugin": "^1.5.0",
+    "fastify": "^3.11.0",
+    "fastify-cookie": "^5.1.0",
+    "fastify-plugin": "^3.0.0",
     "reflect-metadata": "^0.1.13",
     "revane-ioc": "^2.0.0-rc.2"
   },

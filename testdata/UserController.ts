@@ -15,83 +15,92 @@ import {
   Cookies,
   Post
 } from '../src/Decorators'
-import { RevaneResponse } from '../src/RevaneFastify'
+import { Request, RevaneResponse } from '../src/RevaneFastify'
+import { RevaneRequest } from '../src/RevaneRequest'
 
 export class UserController {
   @Get('/user')
-  user (request, reply) {
+  user (request, reply): void {
     reply.send('hello world')
   }
 
   @All('/something')
-  async something (request, reply) {
+  async something (request, reply): Promise<string> {
     return 'hello world'
   }
 
   @Get('/user/:id')
-  getParam (@Param() id) {
+  getParam (@Param() id: string): string {
     return id
   }
 
   @Get('/user2/:id')
-  getParams (@Params params) {
+  getParams (@Params params): boolean {
     return typeof params === 'object'
   }
 
   @Get('/header')
-  getHeader (@Header('x-test') header) {
+  getHeader (@Header('x-test') header: string): string {
     return header
   }
 
   @Get('/headers')
-  getHeaders (@Headers headers) {
+  getHeaders (@Headers headers): boolean {
     return typeof headers === 'object'
   }
 
   @Get('/users/:country')
-  getUsers (@Param country, @Query() ids) {
+  getUsers (@Param country: string, @Query() ids: string): string {
     return country + ids
   }
 
   @Get('/error')
-  error (@Response() reply) {
+  error (@Response() reply): string {
     reply.setHeader('test', 'booom')
     reply.status(500)
     return reply.getHeader('test')
   }
 
+  @Get('/uri')
+  async uri (@Request() request: RevaneRequest): Promise<string> {
+    return request.url() +
+      request.method() +
+      request.protocol() +
+      request.hostname()
+  }
+
   @Get('/gone')
-  redirect (@Response() reply: RevaneResponse) {
+  redirect (@Response() reply: RevaneResponse): void {
     reply.redirect('/error')
   }
 
   @Get('/cookie')
-  getCookie (@Cookie test) {
+  getCookie (@Cookie test: string): string {
     return test
   }
 
   @Get('/cookies')
-  getCookies (@Cookies cookies) {
+  getCookies (@Cookies cookies): boolean {
     return typeof cookies === 'object'
   }
 
   @Get('/log')
-  getLog (@Log log) {
+  getLog (@Log log): boolean {
     return log !== undefined
   }
 
   @Get('/queryParameters')
-  getQueryParameters (@QueryParameters query) {
+  getQueryParameters (@QueryParameters query): boolean {
     return typeof query === 'object'
   }
 
   @Post('/post')
-  async post (@Body test) {
+  async post (@Body test): Promise<string> {
     return test
   }
 
   @Post('/requestpost')
-  async requestpost (@RequestBody body) {
+  async requestpost (@RequestBody body): Promise<boolean> {
     return typeof body === 'object'
   }
 }
