@@ -1,4 +1,3 @@
-import { Component } from 'revane-ioc'
 import { ResponseStatus, ErrorHandler } from '../../src/Decorators'
 
 export class GlobalErrorHandler {

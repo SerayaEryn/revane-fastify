@@ -8,6 +8,7 @@ import { ApplicationContext } from 'revane-ioc'
 import { RevaneResponse } from './RevaneResponse'
 import fastifyPlugin from 'fastify-plugin'
 import fastifyCookie from 'fastify-cookie'
+import { RevaneRequest } from './RevaneRequest'
 
 type Controller = {
   plugin: FastifyPluginCallback
@@ -16,7 +17,8 @@ type Controller = {
 
 export * from './Decorators'
 export {
-  RevaneResponse
+  RevaneResponse,
+  RevaneRequest
 }
 
 export function revaneFastify (options: Options, context: ApplicationContext): RevaneFastify {
