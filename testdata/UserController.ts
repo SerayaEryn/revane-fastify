@@ -7,7 +7,6 @@ import {
   Cookie,
   All,
   QueryParameters,
-  RequestBody,
   Body,
   Headers,
   Params,
@@ -94,13 +93,8 @@ export class UserController {
     return typeof query === 'object'
   }
 
-  @Post('/post')
-  async post (@Body test): Promise<string> {
-    return test
-  }
-
   @Post('/requestpost')
-  async requestpost (@RequestBody body): Promise<boolean> {
+  async requestpost (@Body body): Promise<boolean> {
     return typeof body === 'object'
   }
 }

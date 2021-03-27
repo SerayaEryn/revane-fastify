@@ -371,36 +371,6 @@ test.cb('should pass query parameters to handler', (t) => {
     })
 })
 
-test.cb('should execute post request', (t) => {
-  t.plan(3)
-
-  const options = {
-    port: 0
-  }
-  const instance = revaneFastify(options, beanProvider)
-  instance
-    .register('userController')
-    .listen()
-    .then(() => {
-      instance.server.server.unref()
-      const port = instance.port()
-      request({
-        method: 'POST',
-        uri: `http://localhost:${port}/post`,
-        body: {
-          test: 'hello world'
-        },
-        json: true
-      }, (err, response, body) => {
-        t.falsy(err)
-        t.is(response.statusCode, 200)
-        t.is(body.toString(), 'hello world')
-        instance.close()
-        t.end()
-      })
-    })
-})
-
 test.cb('should pass request body to handler', (t) => {
   t.plan(3)
 

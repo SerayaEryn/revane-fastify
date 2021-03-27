@@ -84,8 +84,7 @@ export function buildErrorHandler (target): ErrorHandler | null {
     Reflect.getMetadata(errorHandlersSym, target) || {}
   const fallbackErrorHandler: ErrorHandlerDefinition =
     Reflect.getMetadata(fallbackErrorHandlerSym, target)
-
-  if (Object.keys(errorHandlers).length > 0) {
+  if (Object.keys(errorHandlers).length > 0 || fallbackErrorHandler != null) {
     return async function errorHander (
       error: NodeJS.ErrnoException,
       request: FastifyRequest,
@@ -96,7 +95,8 @@ export function buildErrorHandler (target): ErrorHandler | null {
         if (errorHandler.errorCode === error.code) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           reply.status(errorHandler.statusCode || 500)
-          return await errorHandler.handlerFunction(
+          // eslint-disable-next-line @typescript-eslint/return-await
+          return await errorHandler.handlerFunction.bind(target)(
             error,
             new RevaneFastifyRequest(request),
             new RevaneFastifyResponse(reply))
@@ -104,8 +104,9 @@ export function buildErrorHandler (target): ErrorHandler | null {
       }
       if (fallbackErrorHandler != null) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        reply.status(fallbackErrorHandler.statusCode || 500)
-        return await fallbackErrorHandler.handlerFunction(
+        reply.status(fallbackErrorHandler.statusCode || errorHandlers[fallbackErrorHandler.handlerName]?.statusCode || 500)
+        // eslint-disable-next-line @typescript-eslint/return-await
+        return await fallbackErrorHandler.handlerFunction.bind(target)(
           error,
           new RevaneFastifyRequest(request),
           new RevaneFastifyResponse(reply))

@@ -42,7 +42,7 @@ function createRequestValueParameterDecorator (type: string) {
 }
 
 function addParameterMetadata (target: Object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string, all: boolean): void {
-  const routes = Reflect.getMetadata(routesSym, target)
+  const routes = Reflect.getMetadata(routesSym, target) || {}
   const name = maybeName || getName(target, propertyKey, parameterIndex)
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] }
@@ -77,19 +77,22 @@ function createErrorHandlerDecorator (): Function {
 function addErrorHandlerMetadata (target: any, propertyKey: string, errorCode?: string): void {
   if (errorCode == null) {
     const errorHandler = {
-      handlerFunction: target[propertyKey].bind(target),
-      errorCode: '__NONE'
+      handlerFunction: target[propertyKey],
+      errorCode: '__NONE',
+      handlerName: propertyKey
     }
     Reflect.defineMetadata(fallbackErrorHandlerSym, errorHandler, target)
   } else {
     const errorHandlers = Reflect.getMetadata(errorHandlersSym, target) || {}
     if (errorHandlers[propertyKey]) {
-      errorHandlers[propertyKey].handlerFunction = target[propertyKey].bind(target)
+      errorHandlers[propertyKey].handlerFunction = target[propertyKey]
       errorHandlers[propertyKey].errorCode = errorCode
+      errorHandlers[propertyKey].handlerName = propertyKey
     } else {
       errorHandlers[propertyKey] = {
-        handlerFunction: target[propertyKey].bind(target),
-        errorCode
+        handlerFunction: target[propertyKey],
+        errorCode,
+        handlerName: propertyKey
       }
     }
     Reflect.defineMetadata(errorHandlersSym, errorHandlers, target)
@@ -114,15 +117,15 @@ export class ErrorHandlerDefinition {
   handlerFunction: (error: Error, request: RevaneRequest, response: RevaneResponse) => Promise<any>
   errorCode: string
   statusCode?: number
+  handlerName: string
 }
 
 const Query = createRequestSubValueParameterDecorator('query')
 const Param = createRequestSubValueParameterDecorator('params')
 const Cookie = createRequestSubValueParameterDecorator('cookies')
-const Body = createRequestSubValueParameterDecorator('body')
 const Header = createRequestSubValueParameterDecorator('headers')
 
-export { Query, Param, Cookie, Body, Header }
+export { Query, Param, Cookie, Header }
 
 const Response = createRequestSubValueParameterDecorator('reply')
 const Request = createRequestSubValueParameterDecorator('request')
@@ -132,11 +135,11 @@ export { Response, Request }
 const Cookies = createRequestValueParameterDecorator('cookies')
 const Params = createRequestValueParameterDecorator('params')
 const QueryParameters = createRequestValueParameterDecorator('query')
-const RequestBody = createRequestValueParameterDecorator('body')
+const Body = createRequestValueParameterDecorator('body')
 const Headers = createRequestValueParameterDecorator('headers')
 const Log = createRequestValueParameterDecorator('log')
 
-export { Cookies, Params, Headers, Log, QueryParameters, RequestBody }
+export { Cookies, Params, Headers, Log, QueryParameters, Body }
 
 const Get = createMethodDecorator('GET')
 const Post = createMethodDecorator('POST')
