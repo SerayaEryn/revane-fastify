@@ -190,8 +190,16 @@ export class RevaneFastify {
     let port: number
     if (typeof addressProviderId === 'string') {
       const addressProvider = await this.context.get(addressProviderId)
-      host = addressProvider.get(this.options.hostKey || 'revane.server.host')
-      port = addressProvider.get(this.options.portKey || 'revane.server.port')
+      if (await addressProvider.has(this.options.hostKey || 'revane.server.host')) {
+        host = addressProvider.get(this.options.hostKey || 'revane.server.host')
+      } else {
+        host = 'localhost'
+      }
+      if (await addressProvider.has(this.options.portKey || 'revane.server.port')) {
+        port = addressProvider.get(this.options.portKey || 'revane.server.port')
+      } else {
+        port = 3000
+      }
     } else {
       host = this.options.host
       port = this.options.port
