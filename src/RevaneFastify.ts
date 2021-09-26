@@ -16,7 +16,8 @@ type Controller = {
 export * from './Decorators'
 export {
   RevaneResponse,
-  RevaneRequest
+  RevaneRequest,
+  RevaneFastifyContext
 }
 
 export function revaneFastify (options: Options, context: RevaneFastifyContext): RevaneFastify {
