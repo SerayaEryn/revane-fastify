@@ -5,7 +5,7 @@ const revaneFastify = require('../bin/src/RevaneFastify').revaneFastify
 const request = require('request')
 
 const beanProvider = {
-  get (key) {
+  getById (key) {
     if (key === 'userController') {
       return new (require('../bin/testdata/ErrorHandlerController').UserController)()
     }
@@ -13,7 +13,7 @@ const beanProvider = {
       return new (require('../testdata/TestLogger'))()
     }
   },
-  has () {
+  hasById () {
     return true
   }
 }

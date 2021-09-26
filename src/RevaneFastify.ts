@@ -1,14 +1,12 @@
-'use strict'
-
 import { Options } from './Options'
 import fastify, { FastifyPluginCallback, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
 import { IncomingMessage, ServerResponse, Server } from 'http'
 import { isDecoratorDriven, buildPlugin, buildGlobalErrorHandler } from './DecoratorDriven'
-import { ApplicationContext } from 'revane-ioc'
 import { RevaneResponse } from './RevaneResponse'
 import fastifyPlugin from 'fastify-plugin'
 import fastifyCookie from 'fastify-cookie'
 import { RevaneRequest } from './RevaneRequest'
+import { RevaneFastifyContext } from './RevaneFastifyContext'
 
 type Controller = {
   plugin: FastifyPluginCallback
@@ -21,7 +19,7 @@ export {
   RevaneRequest
 }
 
-export function revaneFastify (options: Options, context: ApplicationContext): RevaneFastify {
+export function revaneFastify (options: Options, context: RevaneFastifyContext): RevaneFastify {
   const instance = new RevaneFastify(options, context)
   return instance.initialize()
 }
@@ -33,7 +31,7 @@ export class RevaneFastify {
 
   constructor (
     private readonly options: Options,
-    private readonly context: ApplicationContext
+    private readonly context: RevaneFastifyContext
   ) {
     this.server = fastify()
   }
@@ -50,7 +48,7 @@ export class RevaneFastify {
   private async registerAsync (plugin: string | FastifyPluginCallback, options: any): Promise<void> {
     await this.promise
     if (typeof plugin === 'string') {
-      const pluginById = await this.context.get(plugin)
+      const pluginById = await this.context.getById(plugin)
       if (isDecoratorDriven(pluginById)) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.server.register(buildPlugin(pluginById))
@@ -70,7 +68,7 @@ export class RevaneFastify {
 
   private async registerControllersAsync (): Promise<void> {
     await this.promise
-    const controllers = await this.context.getByType('controller')
+    const controllers = await this.context.getByComponentType('controller')
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -88,7 +86,7 @@ export class RevaneFastify {
 
   private async registerGlobalErrorHandlerAsync (): Promise<void> {
     await this.promise
-    const controllerAdvices = await this.context.getByType('controlleradvice')
+    const controllerAdvices = await this.context.getByComponentType('controlleradvice')
     const errorHandler = buildGlobalErrorHandler(controllerAdvices)
     if (errorHandler != null) {
       this.server.setErrorHandler(errorHandler as any)
@@ -145,7 +143,7 @@ export class RevaneFastify {
   private async setErrorHandlerAsync (handler: string | ((error: Error, request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
     await this.promise
     if (typeof handler === 'string') {
-      const errorHandler = await this.context.get(handler)
+      const errorHandler = await this.context.getById(handler)
       this.server.setErrorHandler(errorHandler.errorHandler)
     } else {
       this.server.setErrorHandler(handler)
@@ -160,7 +158,7 @@ export class RevaneFastify {
   private async setNotFoundHandlerAsync (handler: string | ((request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
     await this.promise
     if (typeof handler === 'string') {
-      const notFoundHandler = await this.context.get(handler)
+      const notFoundHandler = await this.context.getById(handler)
       this.server.setNotFoundHandler(notFoundHandler.notFoundHandler)
     } else {
       this.server.setNotFoundHandler(handler)
@@ -189,7 +187,7 @@ export class RevaneFastify {
     let host: string
     let port: number
     if (typeof addressProviderId === 'string') {
-      const addressProvider = await this.context.get(addressProviderId)
+      const addressProvider = await this.context.getById(addressProviderId)
       if (await addressProvider.has(this.options.hostKey || 'revane.server.host')) {
         host = addressProvider.get(this.options.hostKey || 'revane.server.host')
       } else {
@@ -208,8 +206,8 @@ export class RevaneFastify {
   }
 
   private async logStartUp (): Promise<void> {
-    if (!this.options.silent && await this.context.has('logger')) {
-      const logger = await this.context.get('logger')
+    if (!this.options.silent && await this.context.hasById('logger')) {
+      const logger = await this.context.getById('logger')
       logger.info(`Fastify started on port: ${this.port()}`)
       const startUpTime = Date.now() - this.startTime
       logger.info(`Startup in ${startUpTime} ms`)

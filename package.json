@@ -37,7 +37,7 @@
     "fastify-cookie": "^5.1.0",
     "fastify-plugin": "^3.0.0",
     "reflect-metadata": "^0.1.13",
-    "revane-ioc": "^2.0.0-rc.2"
+    "tslib": "^2.3.1"
   },
   "keywords": [
     "inversion of control",

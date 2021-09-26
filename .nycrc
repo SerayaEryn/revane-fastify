@@ -11,7 +11,8 @@
     "bin/src/RevaneReply.js",
     "bin/src/Options.js",
     "bin/src/RevaneResponse.js",
-    "bin/src/RevaneRequest.js"
+    "bin/src/RevaneRequest.js",
+    "bin/src/RevaneFastifyContext.js"
   ],
   "reporter": [
     "lcov",

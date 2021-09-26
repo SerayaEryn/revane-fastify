@@ -5,7 +5,7 @@ const revaneFastify = require('../bin/src/RevaneFastify').revaneFastify
 const request = require('request')
 
 const beanProvider = {
-  get (key) {
+  getById (key) {
     if (key === 'userController') {
       return new (require('../bin/testdata/globalErrorHandler/UserController').UserController)()
     }
@@ -13,10 +13,10 @@ const beanProvider = {
       return new (require('../testdata/TestLogger'))()
     }
   },
-  has () {
+  hasById () {
     return true
   },
-  getByType () {
+  getByComponentType () {
     return Promise.resolve([
       new (require('../bin/testdata/globalErrorHandler/GlobalErrorHandler').GlobalErrorHandler)()
     ])

@@ -6,7 +6,7 @@ const test = require('ava')
 const revaneFastify = require('..').revaneFastify
 
 const revane = {
-  get (key) {
+  getById (key) {
     if (key === 'testController') {
       return new (require('../testdata/TestController'))()
     }
@@ -23,10 +23,10 @@ const revane = {
       return new (require('../testdata/TestLogger'))()
     }
   },
-  has () {
+  hasById () {
     return true
   },
-  getByType () {
+  getByComponentType () {
     return [new (require('../testdata/TestController2'))()]
   }
 }
