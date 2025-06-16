@@ -2,6 +2,7 @@ import { IncomingHttpHeaders } from 'http'
 
 export interface RevaneRequest {
   url (): string
+  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
   cookies (): { [cookieName: string]: string }
   headers (): IncomingHttpHeaders
   query (): unknown

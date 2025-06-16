@@ -1,4 +1,4 @@
-export type Options = {
+export interface Options {
   hostKey?: string
   portKey?: string
   host?: string

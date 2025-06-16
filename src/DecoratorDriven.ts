@@ -18,7 +18,7 @@ import {
   routesSym
 } from './Symbols'
 
-type Parameter = {
+interface Parameter {
   type: string
   name: string
   all: boolean
@@ -80,6 +80,7 @@ function isErrorHandler (controllerAdvice: any): unknown {
 }
 
 export function buildErrorHandler (target): ErrorHandler | null {
+  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
   const errorHandlers: { [cookieName: string]: ErrorHandlerDefinition } =
     Reflect.getMetadata(errorHandlersSym, target) || {}
   const fallbackErrorHandler: ErrorHandlerDefinition =
@@ -93,20 +94,16 @@ export function buildErrorHandler (target): ErrorHandler | null {
       for (const key of Object.keys(errorHandlers)) {
         const errorHandler = errorHandlers[key]
         if (errorHandler.errorCode === error.code) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           reply.status(errorHandler.statusCode || 500)
-          // eslint-disable-next-line @typescript-eslint/return-await
-          return await errorHandler.handlerFunction.bind(target)(
+          return errorHandler.handlerFunction.bind(target)(
             error,
             new RevaneFastifyRequest(request),
             new RevaneFastifyResponse(reply))
         }
       }
       if (fallbackErrorHandler != null) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         reply.status(fallbackErrorHandler.statusCode || errorHandlers[fallbackErrorHandler.handlerName]?.statusCode || 500)
-        // eslint-disable-next-line @typescript-eslint/return-await
-        return await fallbackErrorHandler.handlerFunction.bind(target)(
+        return fallbackErrorHandler.handlerFunction.bind(target)(
           error,
           new RevaneFastifyRequest(request),
           new RevaneFastifyResponse(reply))
@@ -117,9 +114,9 @@ export function buildErrorHandler (target): ErrorHandler | null {
   return null
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function buildHandler (parameters: Parameter[], handler: Function): RouteHandlerMethod {
   const src = buildHandlerString(parameters)
-  // eslint-disable-next-line no-new-func,@typescript-eslint/no-implied-eval
   const handlerFunction = new Function(
     'handler',
     'RevaneFastifyReply',

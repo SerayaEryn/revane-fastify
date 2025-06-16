@@ -4,11 +4,11 @@ import { IncomingMessage, ServerResponse, Server } from 'http'
 import { isDecoratorDriven, buildPlugin, buildGlobalErrorHandler } from './DecoratorDriven'
 import { RevaneResponse } from './RevaneResponse'
 import fastifyPlugin from 'fastify-plugin'
-import fastifyCookie from 'fastify-cookie'
+import fastifyCookie from '@fastify/cookie'
 import { RevaneRequest } from './RevaneRequest'
 import { RevaneFastifyContext } from './RevaneFastifyContext'
 
-type Controller = {
+interface Controller {
   plugin: FastifyPluginCallback
   options?: any
 }
@@ -51,13 +51,11 @@ export class RevaneFastify {
     if (typeof plugin === 'string') {
       const pluginById = await this.context.getById(plugin)
       if (isDecoratorDriven(pluginById)) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.server.register(buildPlugin(pluginById))
       } else {
         this.registerPlugin(pluginById)
       }
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.server.register(plugin, options)
     }
   }
@@ -72,7 +70,6 @@ export class RevaneFastify {
     const controllers = await this.context.getByComponentType('controller')
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.server.register(buildPlugin(controller))
       } else {
         this.registerPlugin(controller)
@@ -98,7 +95,10 @@ export class RevaneFastify {
     await this.promise
     const options = await this.getHostAndPort(addressProviderId)
 
-    const address = await this.server.listen(options.port, options.host)
+    const address = await this.server.listen({
+      port: options.port, 
+      host: options.host
+    })
     await this.logStartUp()
     return address
   }
@@ -180,7 +180,6 @@ export class RevaneFastify {
       plugin.plugin = fastifyPlugin(plugin.plugin)
     }
     const opts = plugin.options || {}
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.server.register(plugin.plugin, opts)
   }
 

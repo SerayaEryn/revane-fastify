@@ -4,9 +4,10 @@ import { decoratorDrivenSym, errorHandlersSym, fallbackErrorHandlerSym, routesSy
 import { RevaneRequest } from './RevaneRequest'
 import { RevaneResponse } from './RevaneFastify'
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createMethodDecorator (method: string | string[]): Function {
   return function methodDecorator (url: string, options?: any) {
-    return function decorate (target, propertyKey: string, descriptor: PropertyDescriptor) {
+    return function decorate (target, propertyKey: string, _: PropertyDescriptor) {
       Reflect.defineMetadata(decoratorDrivenSym, true, target)
       const routes = Reflect.getMetadata(routesSym, target) || {}
       const handlerFunction = propertyKey
@@ -23,10 +24,11 @@ function createMethodDecorator (method: string | string[]): Function {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createRequestSubValueParameterDecorator (type: string): Function {
-  return function parameterDecorator (maybeName: string | Object, maybePropertyKey?: string | symbol, maybeParameterIndex?: number) {
+  return function parameterDecorator (maybeName: string | object, maybePropertyKey?: string | symbol, maybeParameterIndex?: number) {
     if (typeof maybeName === 'string' || maybeName === undefined) {
-      return function decorate (target: Object, propertyKey: string | symbol, parameterIndex: number) {
+      return function decorate (target: object, propertyKey: string | symbol, parameterIndex: number) {
         addParameterMetadata(target, maybeName as string, propertyKey, parameterIndex, type, false)
       }
     } else {
@@ -36,12 +38,12 @@ function createRequestSubValueParameterDecorator (type: string): Function {
 }
 
 function createRequestValueParameterDecorator (type: string) {
-  return function (target: Object, propertyKey: string | symbol, parameterIndex: number) {
+  return function (target: object, propertyKey: string | symbol, parameterIndex: number) {
     addParameterMetadata(target, type, propertyKey, parameterIndex, type, true)
   }
 }
 
-function addParameterMetadata (target: Object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string, all: boolean): void {
+function addParameterMetadata (target: object, maybeName: string, propertyKey: string | symbol, parameterIndex: number, type: string, all: boolean): void {
   const routes = Reflect.getMetadata(routesSym, target) || {}
   const name = maybeName || getName(target, propertyKey, parameterIndex)
   if (!routes[propertyKey]) {
@@ -51,7 +53,7 @@ function addParameterMetadata (target: Object, maybeName: string, propertyKey: s
   Reflect.defineMetadata(routesSym, routes, target)
 }
 
-function getName (target: Object, propertyKey: string | symbol, parameterIndex: number): string {
+function getName (target: object, propertyKey: string | symbol, parameterIndex: number): string {
   let functionSource: string = target[propertyKey].toString()
   if (functionSource.startsWith('async')) {
     functionSource = `async function ${functionSource.substring(6)}`
@@ -62,10 +64,12 @@ function getName (target: Object, propertyKey: string | symbol, parameterIndex: 
   return ast.body[0].params[parameterIndex].name
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createErrorHandlerDecorator (): Function {
-  return function decorator (targetOrErrorCode: string | any, propertyKey: string, descriptor: PropertyDescriptor): Function {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  return function decorator (targetOrErrorCode: string | any, propertyKey: string, _: PropertyDescriptor): Function {
     if (typeof targetOrErrorCode === 'string') {
-      return function errorHandlerDecorator (target, propertyKey: string, descriptor: PropertyDescriptor) {
+      return function errorHandlerDecorator (target, propertyKey: string, _: PropertyDescriptor) {
         addErrorHandlerMetadata(target, propertyKey, targetOrErrorCode)
       }
     } else {
@@ -99,9 +103,11 @@ function addErrorHandlerMetadata (target: any, propertyKey: string, errorCode?: 
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createResponseStatusDecorator (): Function {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   return function decorator (statusCode: number): Function {
-    return function responseStatusDecorator (target, propertyKey: string, descriptor: PropertyDescriptor) {
+    return function responseStatusDecorator (target, propertyKey: string, _: PropertyDescriptor) {
       const errorHandlers = Reflect.getMetadata(errorHandlersSym, target) || {}
       if (errorHandlers[propertyKey]) {
         errorHandlers[propertyKey].statusCode = statusCode
