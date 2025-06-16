@@ -14,6 +14,8 @@ interface Controller {
   options?: any
 }
 
+const ACCESS_LOG_ENABLED = 'revane.access-logging.enabled'
+
 export * from './Decorators'
 export {
   RevaneResponse,
@@ -27,15 +29,16 @@ export function revaneFastify (options: Options, context: RevaneFastifyContext):
 }
 
 export class RevaneFastify {
-  private promise: Promise<any> = Promise.resolve()
-  private readonly server: FastifyInstance
-  private readonly startTime: number = Date.now()
+  #promise: Promise<any>
+  readonly #server: FastifyInstance
+  readonly #startTime: number = Date.now()
 
   constructor (
     private readonly options: Options,
     private readonly context: RevaneFastifyContext
   ) {
-    this.server = fastify()
+    this.#server = fastify()
+    this.#promise = this.registerAccessLogger()
   }
 
   public initialize (): RevaneFastify {
@@ -43,35 +46,21 @@ export class RevaneFastify {
   }
 
   public register (plugin: string | FastifyPluginCallback, options: any): RevaneFastify {
-    this.promise = this.registerAsync(plugin, options)
+    this.#promise = this.registerAsync(plugin, options)
     return this
   }
 
-  private async registerAsync (plugin: string | FastifyPluginCallback, options: any): Promise<void> {
-    await this.promise
-    if (typeof plugin === 'string') {
-      const pluginById = await this.context.getById(plugin)
-      if (isDecoratorDriven(pluginById)) {
-        this.server.register(buildPlugin(pluginById))
-      } else {
-        this.registerPlugin(pluginById)
-      }
-    } else {
-      this.server.register(plugin, options)
-    }
-  }
-
   public registerControllers (): RevaneFastify {
-    this.promise = this.registerControllersAsync()
+    this.#promise = this.registerControllersAsync()
     return this
   }
 
   private async registerControllersAsync (): Promise<void> {
-    await this.promise
+    await this.#promise
     const controllers = await this.context.getByComponentType('controller')
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
-        this.server.register(buildPlugin(controller))
+        this.#server.register(buildPlugin(controller))
       } else {
         this.registerPlugin(controller)
       }
@@ -79,25 +68,16 @@ export class RevaneFastify {
   }
 
   public registerGlobalErrorHandler (): RevaneFastify {
-    this.promise = this.registerGlobalErrorHandlerAsync()
+    this.#promise = this.registerGlobalErrorHandlerAsync()
     return this
-  }
-
-  private async registerGlobalErrorHandlerAsync (): Promise<void> {
-    await this.promise
-    const controllerAdvices = await this.context.getByComponentType('controlleradvice')
-    const errorHandler = buildGlobalErrorHandler(controllerAdvices)
-    if (errorHandler != null) {
-      this.server.setErrorHandler(errorHandler as any)
-    }
   }
 
   public async listen (addressProviderId: string): Promise<string> {
     await this.logApplication()
-    await this.promise
+    await this.#promise
     const options = await this.getHostAndPort(addressProviderId)
     await this.logFastifyStart()
-    const address = await this.server.listen({
+    const address = await this.#server.listen({
       port: options.port, 
       host: options.host
     })
@@ -107,29 +87,37 @@ export class RevaneFastify {
 
   public async close (): Promise<void> {
     // tslint disable-next-line
-    return await this.server.close()
+    return await this.#server.close()
+  }
+
+  public unref(): void {
+    this.#server.server.unref()
+  }
+
+  public printRoutes(): string {
+    return this.#server.printRoutes()
   }
 
   public port (): number {
-    const addressInfo: any = this.server.server.address()
+    const addressInfo: any = this.#server.server.address()
     return addressInfo.port
   }
 
   public ready (callback: (err?: Error, fastify?: FastifyInstance<Server, IncomingMessage, ServerResponse>) => void): RevaneFastify {
-    this.promise = this.promise
+    this.#promise = this.#promise
       .then(async () => {
         return await new Promise((resolve, reject) => {
-          this.server.ready()
+          this.#server.ready()
             .then(
               () => {
                 if (callback) {
-                  callback(null, this.server)
+                  callback(null, this.#server)
                 }
                 resolve(null)
               },
               (err) => {
                 if (callback) {
-                  callback(err, this.server)
+                  callback(err, this.#server)
                 }
                 reject(err)
               })
@@ -139,38 +127,38 @@ export class RevaneFastify {
   }
 
   public setErrorHandler (handler: string | ((error: Error, request: FastifyRequest, reply: FastifyReply) => void)): RevaneFastify {
-    this.promise = this.setErrorHandlerAsync(handler)
+    this.#promise = this.setErrorHandlerAsync(handler)
     return this
   }
 
   private async setErrorHandlerAsync (handler: string | ((error: Error, request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
-    await this.promise
+    await this.#promise
     if (typeof handler === 'string') {
       const errorHandler = await this.context.getById(handler)
-      this.server.setErrorHandler(errorHandler.errorHandler)
+      this.#server.setErrorHandler(errorHandler.errorHandler)
     } else {
-      this.server.setErrorHandler(handler)
+      this.#server.setErrorHandler(handler)
     }
   }
 
   public setNotFoundHandler (handler: string | ((request: FastifyRequest, reply: FastifyReply) => void)): RevaneFastify {
-    this.promise = this.setNotFoundHandlerAsync(handler)
+    this.#promise = this.setNotFoundHandlerAsync(handler)
     return this
   }
 
   private async setNotFoundHandlerAsync (handler: string | ((request: FastifyRequest, reply: FastifyReply) => void)): Promise<void> {
-    await this.promise
+    await this.#promise
     if (typeof handler === 'string') {
       const notFoundHandler = await this.context.getById(handler)
-      this.server.setNotFoundHandler(notFoundHandler.notFoundHandler)
+      this.#server.setNotFoundHandler(notFoundHandler.notFoundHandler)
     } else {
-      this.server.setNotFoundHandler(handler)
+      this.#server.setNotFoundHandler(handler)
     }
   }
 
   public after (handler: (err: Error) => void): RevaneFastify {
-    this.promise = this.promise
-      .then(() => this.server.after(handler))
+    this.#promise = this.#promise
+      .then(() => this.#server.after(handler))
     return this
   }
 
@@ -182,7 +170,30 @@ export class RevaneFastify {
       plugin.plugin = fastifyPlugin(plugin.plugin)
     }
     const opts = plugin.options || {}
-    this.server.register(plugin.plugin, opts)
+    this.#server.register(plugin.plugin, opts)
+  }
+
+  private async registerGlobalErrorHandlerAsync (): Promise<void> {
+    await this.#promise
+    const controllerAdvices = await this.context.getByComponentType('controlleradvice')
+    const errorHandler = buildGlobalErrorHandler(controllerAdvices)
+    if (errorHandler != null) {
+      this.#server.setErrorHandler(errorHandler as any)
+    }
+  }
+
+  private async registerAsync (plugin: string | FastifyPluginCallback, options: any): Promise<void> {
+    await this.#promise
+    if (typeof plugin === 'string') {
+      const pluginById = await this.context.getById(plugin)
+      if (isDecoratorDriven(pluginById)) {
+        this.#server.register(buildPlugin(pluginById))
+      } else {
+        this.registerPlugin(pluginById)
+      }
+    } else {
+      this.#server.register(plugin, options)
+    }
   }
 
   private async getHostAndPort (addressProviderId?: string): Promise<{host: string, port: number}> {
@@ -225,9 +236,28 @@ export class RevaneFastify {
     if (!this.options.silent && await this.context.hasById('logger')) {
       const logger = await this.context.getById('logger')
       logger.info(`Fastify started on port: ${this.port()}`)
-      const startUpTime = Date.now() - this.startTime
+      const startUpTime = Date.now() - this.#startTime
       logger.info(`Startup in ${startUpTime} ms`)
     }
+  }
+
+  private async registerAccessLogger () {
+    if (!this.options.silent && await this.context.hasById('logger')) {
+      const logger = await this.context.getById('logger')
+      if (await this.accessLogEnabled()) {
+        this.#server.addHook('onRequest', async (request: FastifyRequest, _: FastifyReply) => {
+          logger.info(`${request.method} ${request.url}`)
+        })
+      }
+    }
+  }
+
+  private async accessLogEnabled(): Promise<boolean> {
+    const configuration = await this.context.getById('configuration')
+    if (configuration == null) {
+      return true
+    }
+    return !configuration.has(ACCESS_LOG_ENABLED) ? true : configuration.getBoolean(ACCESS_LOG_ENABLED)
   }
 }
 

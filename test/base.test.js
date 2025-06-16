@@ -3,8 +3,10 @@
 const fastifyPlugin = require('fastify-plugin')
 const request = require('request')
 const test = require('ava')
+const { log } = require('console')
 const revaneFastify = require('..').revaneFastify
 
+const logger = new (require('../testdata/TestLogger'))()
 const revane = {
   getById (key) {
     if (key === 'testController') {
@@ -20,7 +22,7 @@ const revane = {
       return new (require('../testdata/TestHandler'))()
     }
     if (key === 'logger') {
-      return new (require('../testdata/TestLogger'))()
+      return logger
     }
   },
   hasById () {
@@ -53,8 +55,9 @@ test('Should register controller', (t) => {
 
 test('Should bind and create plugin', async (t) => {
   return new Promise((resolve, reject) => {
-    t.plan(3)
+    t.plan(4)
 
+    logger.reset()
     const options = {
       port: 0
     }
@@ -63,7 +66,7 @@ test('Should bind and create plugin', async (t) => {
       .register('testController2')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -73,6 +76,7 @@ test('Should bind and create plugin', async (t) => {
           t.is(response.statusCode, 200)
           t.is(body.toString(), 'test')
           instance.close()
+          t.true(logger.messages.includes('GET /'))
           resolve()
         })
       })
@@ -131,7 +135,7 @@ test('Should set not found handler', async (t) => {
       .listen()
       .then(() => {
         t.pass()
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -161,7 +165,7 @@ test('Should set not found handler by id', async (t) => {
       .listen()
       .then(() => {
         t.pass()
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -196,7 +200,7 @@ test('Should set error handler by id', async (t) => {
       .ready()
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -235,7 +239,7 @@ test('Should set error handler', async (t) => {
       .ready()
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -264,7 +268,7 @@ test('Should start server', async (t) => {
       .register(fastifyPlugin(plugin))
       .listen()
       .then((address) => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -294,7 +298,7 @@ test('Should start server using addressProvider', async (t) => {
       .register(fastifyPlugin(plugin))
       .listen('config')
       .then((address) => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -323,7 +327,7 @@ test('Should start server using addressProvider and registerControllers', async 
       .register(fastifyPlugin(plugin))
       .listen('config')
       .then((address) => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',

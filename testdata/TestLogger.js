@@ -1,5 +1,13 @@
 'use strict'
 
 module.exports = class TestLogger {
-  info (message) {}
+  messages = []
+
+  info (message) {
+    this.messages.push(message)
+  }
+
+  reset () {
+    this.messages = []
+  }
 }

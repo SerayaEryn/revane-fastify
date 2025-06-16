@@ -33,7 +33,7 @@ test('get', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -61,7 +61,7 @@ test('should be able call @All handler with GET', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -89,7 +89,7 @@ test('should be able call @All handler with POST', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'POST',
@@ -117,7 +117,7 @@ test('should pass cookie value to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -148,7 +148,7 @@ test('should pass request to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -176,7 +176,7 @@ test('should pass cookie values to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -207,7 +207,7 @@ test('should pass header value to handler with alternate name', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -238,7 +238,7 @@ test('should pass header values to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -269,7 +269,7 @@ test('should pass multiple parameters to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -297,7 +297,7 @@ test('should pass param value to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -325,7 +325,7 @@ test('should pass param values to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -353,7 +353,7 @@ test('should pass logger to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -381,7 +381,7 @@ test('should pass query parameters to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -409,7 +409,7 @@ test('should pass request body to handler', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'POST',
@@ -440,11 +440,11 @@ test('get with reply and status', async (t) => {
     instance
       .register('userController')
       .ready(() => {
-        t.truthy(instance.server.printRoutes())
+        t.truthy(instance.printRoutes())
       })
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -471,11 +471,11 @@ test('redirect', async (t) => {
     instance
       .register('userController')
       .ready(() => {
-        t.truthy(instance.server.printRoutes())
+        t.truthy(instance.printRoutes())
       })
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',

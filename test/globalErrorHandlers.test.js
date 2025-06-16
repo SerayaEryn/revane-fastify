@@ -36,7 +36,7 @@ test('errorhandler with errorCode and statusCode', async (t) => {
       .registerGlobalErrorHandler()
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
@@ -66,7 +66,7 @@ test('errorhandler without errorCode and statusCode', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',

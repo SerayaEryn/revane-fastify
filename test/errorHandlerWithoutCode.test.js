@@ -30,7 +30,7 @@ test('errorhandler with errorCode and statusCode', async (t) => {
       .register('userController')
       .listen()
       .then(() => {
-        instance.server.server.unref()
+        instance.unref()
         const port = instance.port()
         request({
           method: 'GET',
