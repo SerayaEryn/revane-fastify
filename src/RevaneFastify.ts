@@ -7,6 +7,7 @@ import fastifyPlugin from 'fastify-plugin'
 import fastifyCookie from '@fastify/cookie'
 import { RevaneRequest } from './RevaneRequest'
 import { RevaneFastifyContext } from './RevaneFastifyContext'
+import { hostname } from 'node:os'
 
 interface Controller {
   plugin: FastifyPluginCallback
@@ -92,14 +93,15 @@ export class RevaneFastify {
   }
 
   public async listen (addressProviderId: string): Promise<string> {
+    await this.logApplication()
     await this.promise
     const options = await this.getHostAndPort(addressProviderId)
-
+    await this.logFastifyStart()
     const address = await this.server.listen({
       port: options.port, 
       host: options.host
     })
-    await this.logStartUp()
+    await this.logFastifyStartSuccessful()
     return address
   }
 
@@ -205,7 +207,21 @@ export class RevaneFastify {
     return { host, port }
   }
 
-  private async logStartUp (): Promise<void> {
+  private async logApplication (): Promise<void> {
+    if (!this.options.silent && await this.context.hasById('logger')) {
+      const logger = await this.context.getById('logger')
+      logger.info(`Starting Application using Node.js ${process.version} on ${hostname()} with PID ${process.pid}`)
+    }
+  }
+
+  private async logFastifyStart (): Promise<void> {
+    if (!this.options.silent && await this.context.hasById('logger')) {
+      const logger = await this.context.getById('logger')
+      logger.info(`Starting Fastify`)
+    }
+  }
+
+  private async logFastifyStartSuccessful (): Promise<void> {
     if (!this.options.silent && await this.context.hasById('logger')) {
       const logger = await this.context.getById('logger')
       logger.info(`Fastify started on port: ${this.port()}`)
