@@ -1,4 +1,4 @@
-import { ResponseStatus, ErrorHandler } from '../../src/Decorators'
+import { ResponseStatus, ErrorHandler } from '../../src/Decorators.js'
 
 export class GlobalErrorHandler {
   @ErrorHandler('ERR1')

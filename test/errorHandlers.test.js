@@ -1,16 +1,17 @@
-'use strict'
+import request from 'request'
+import test from 'ava'
+import { revaneFastify } from '../src/RevaneFastify.js'
+import { ErrorHandlerController } from '../testdata/ErrorHandlerController.js'
+import { TestLogger } from '../testdata/TestLogger.js'
 
-const test = require('ava')
-const revaneFastify = require('../bin/src/RevaneFastify').revaneFastify
-const request = require('request')
 
 const beanProvider = {
   getById (key) {
     if (key === 'userController') {
-      return new (require('../bin/testdata/ErrorHandlerController').UserController)()
+      return new ErrorHandlerController()
     }
     if (key === 'logger') {
-      return new (require('../testdata/TestLogger'))()
+      return new TestLogger()
     }
   },
   hasById () {

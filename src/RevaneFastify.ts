@@ -1,12 +1,12 @@
-import { Options } from './Options'
+import { Options } from './Options.js'
 import fastify, { FastifyPluginCallback, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
-import { IncomingMessage, ServerResponse, Server } from 'http'
-import { isDecoratorDriven, buildPlugin, buildGlobalErrorHandler } from './DecoratorDriven'
-import { RevaneResponse } from './RevaneResponse'
+import { IncomingMessage, ServerResponse, Server } from 'node:http'
+import { isDecoratorDriven, buildPlugin, buildGlobalErrorHandler } from './DecoratorDriven.js'
+import { RevaneResponse } from './RevaneResponse.js'
 import fastifyPlugin from 'fastify-plugin'
 import fastifyCookie from '@fastify/cookie'
-import { RevaneRequest } from './RevaneRequest'
-import { RevaneFastifyContext } from './RevaneFastifyContext'
+import { RevaneRequest } from './RevaneRequest.js'
+import { RevaneFastifyContext } from './RevaneFastifyContext.js'
 import { hostname } from 'node:os'
 
 interface Controller {
@@ -16,7 +16,7 @@ interface Controller {
 
 const ACCESS_LOG_ENABLED = 'revane.access-logging.enabled'
 
-export * from './Decorators'
+export * from './Decorators.js'
 export {
   RevaneResponse,
   RevaneRequest,

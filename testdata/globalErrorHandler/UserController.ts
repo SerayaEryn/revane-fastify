@@ -1,4 +1,4 @@
-import { Get } from '../../src/Decorators'
+import { Get } from '../../src/Decorators.js'
 
 export class UserController {
   @Get('/error1')

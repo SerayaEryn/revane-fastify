@@ -1,6 +1,4 @@
-'use strict'
-
-module.exports = class Handler {
+export default class Handler {
   constructor () {
     this.errorHandler = this.errorHandler.bind(this)
     this.notFoundHandler = this.notFoundHandler.bind(this)

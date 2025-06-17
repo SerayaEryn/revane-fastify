@@ -1,25 +1,27 @@
-'use strict'
+import fastifyPlugin from 'fastify-plugin'
+import request from 'request'
+import test from 'ava'
+import { revaneFastify } from '../src/RevaneFastify.js'
+import TestController from '../testdata/TestController.js'
+import TestController2 from '../testdata/TestController2.js'
+import { TestAddressProvider } from '../testdata/TestAddressProvider.js'
+import TestHandler from '../testdata/TestHandler.js'
+import { TestLogger } from '../testdata/TestLogger.js'
 
-const fastifyPlugin = require('fastify-plugin')
-const request = require('request')
-const test = require('ava')
-const { log } = require('console')
-const revaneFastify = require('..').revaneFastify
-
-const logger = new (require('../testdata/TestLogger'))()
+const logger = new TestLogger()
 const revane = {
   getById (key) {
     if (key === 'testController') {
-      return new (require('../testdata/TestController'))()
+      return new TestController()
     }
     if (key === 'testController2') {
-      return new (require('../testdata/TestController2'))()
+      return new TestController2()
     }
     if (key === 'config') {
-      return new (require('../testdata/TestAddressProvider'))()
+      return new TestAddressProvider()
     }
     if (key === 'handler') {
-      return new (require('../testdata/TestHandler'))()
+      return new TestHandler()
     }
     if (key === 'logger') {
       return logger
@@ -29,7 +31,7 @@ const revane = {
     return true
   },
   getByComponentType () {
-    return [new (require('../testdata/TestController2'))()]
+    return [new TestController()]
   }
 }
 

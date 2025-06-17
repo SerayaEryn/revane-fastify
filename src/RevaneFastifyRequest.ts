@@ -1,6 +1,6 @@
 import { FastifyRequest } from 'fastify'
-import { IncomingHttpHeaders } from 'http'
-import { RevaneRequest } from './RevaneRequest'
+import { IncomingHttpHeaders } from 'node:http'
+import { RevaneRequest } from './RevaneRequest.js'
 
 export class RevaneFastifyRequest implements RevaneRequest {
   constructor (private readonly request: FastifyRequest) {}

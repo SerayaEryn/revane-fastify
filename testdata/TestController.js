@@ -1,8 +1,6 @@
-'use strict'
+import fastifyPlugin from 'fastify-plugin'
 
-const fastifyPlugin = require('fastify-plugin')
-
-module.exports = class TestController {
+export default class TestController {
   constructor () {
     this.plugin = fastifyPlugin(this.plugin.bind(this))
   }

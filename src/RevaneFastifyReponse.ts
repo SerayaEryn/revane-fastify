@@ -1,5 +1,5 @@
 import { FastifyReply } from 'fastify'
-import { RevaneResponse } from './RevaneResponse'
+import { RevaneResponse } from './RevaneResponse.js'
 
 export class RevaneFastifyResponse implements RevaneResponse {
   constructor (private readonly reply: FastifyReply) {}

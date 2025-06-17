@@ -2,9 +2,9 @@ import {
   Get,
   ResponseStatus,
   ErrorHandler
-} from '../src/Decorators'
+} from '../src/Decorators.js'
 
-export class UserController {
+export class ErrorHandlerController {
   @Get('/error1')
   async error1 (request, reply): Promise<string> {
     const error: any = new Error()

@@ -1,8 +1,8 @@
 import 'reflect-metadata'
 import { parse } from 'acorn'
-import { decoratorDrivenSym, errorHandlersSym, fallbackErrorHandlerSym, routesSym } from './Symbols'
-import { RevaneRequest } from './RevaneRequest'
-import { RevaneResponse } from './RevaneFastify'
+import { decoratorDrivenSym, errorHandlersSym, fallbackErrorHandlerSym, routesSym } from './Symbols.js'
+import { RevaneRequest } from './RevaneRequest.js'
+import { RevaneResponse } from './RevaneFastify.js'
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createMethodDecorator (method: string | string[]): Function {

@@ -13,9 +13,9 @@ import {
   Log,
   Cookies,
   Post
-} from '../src/Decorators'
-import { Request, RevaneResponse } from '../src/RevaneFastify'
-import { RevaneRequest } from '../src/RevaneRequest'
+} from '../src/Decorators.js'
+import { Request, RevaneResponse } from '../src/RevaneFastify.js'
+import { RevaneRequest } from '../src/RevaneRequest.js'
 
 export class UserController {
   @Get('/user')

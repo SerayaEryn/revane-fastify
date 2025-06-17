@@ -1,16 +1,18 @@
-'use strict'
+import request from 'request'
+import test from 'ava'
+import { revaneFastify } from '../src/RevaneFastify.js'
+import { UserController } from '../testdata/globalErrorHandler/UserController.js'
+import { GlobalErrorHandler } from '../testdata/globalErrorHandler/GlobalErrorHandler.js'
+import { TestLogger } from '../testdata/TestLogger.js'
 
-const test = require('ava')
-const revaneFastify = require('../bin/src/RevaneFastify').revaneFastify
-const request = require('request')
 
 const beanProvider = {
   getById (key) {
     if (key === 'userController') {
-      return new (require('../bin/testdata/globalErrorHandler/UserController').UserController)()
+      return new UserController()
     }
     if (key === 'logger') {
-      return new (require('../testdata/TestLogger'))()
+      return new TestLogger()
     }
   },
   hasById () {
@@ -18,7 +20,7 @@ const beanProvider = {
   },
   getByComponentType () {
     return Promise.resolve([
-      new (require('../bin/testdata/globalErrorHandler/GlobalErrorHandler').GlobalErrorHandler)()
+      new GlobalErrorHandler()
     ])
   }
 }

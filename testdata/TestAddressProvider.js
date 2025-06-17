@@ -1,6 +1,4 @@
-'use strict'
-
-module.exports = class Config {
+export class TestAddressProvider {
   has (key) {
     const map = {
       'revane.server.host': 'localhost',

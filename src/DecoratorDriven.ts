@@ -8,15 +8,15 @@ import {
   FastifyRequest
 } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
-import { ErrorHandlerDefinition } from './Decorators'
-import { RevaneFastifyResponse } from './RevaneFastifyReponse'
-import { RevaneFastifyRequest } from './RevaneFastifyRequest'
+import { ErrorHandlerDefinition } from './Decorators.js'
+import { RevaneFastifyResponse } from './RevaneFastifyReponse.js'
+import { RevaneFastifyRequest } from './RevaneFastifyRequest.js'
 import {
   decoratorDrivenSym,
   errorHandlersSym,
   fallbackErrorHandlerSym,
   routesSym
-} from './Symbols'
+} from './Symbols.js'
 
 interface Parameter {
   type: string

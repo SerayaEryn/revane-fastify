@@ -1,6 +1,4 @@
-'use strict'
-
-module.exports = class TestLogger {
+export class TestLogger {
   messages = []
 
   info (message) {
