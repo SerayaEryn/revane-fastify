@@ -7,8 +7,7 @@
     "unit": "ava bin/test/*.test.js",
     "test": "npm run compile && npm run postbuild && npm run lint && npm run unit",
     "lint": "eslint src/**",
-    "coveralls": "nyc npm test",
-    "coverage": "nyc npm test && nyc report --reporter=html",
+    "coverage": "c8 npm test",
     "compile": "tsc -d",
     "prepublishOnly": "npm run compile -s",
     "postbuild": "cpy 'testdata/**/*.js' bin/testdata && cpy 'test/**/*.js' bin/test"
@@ -23,9 +22,9 @@
     "@eslint/js": "^9.29.0",
     "@types/node": "^24.0.3",
     "ava": "^6.4.0",
+    "c8": "^10.1.3",
     "cpy-cli": "^5.0.0",
     "eslint": "^9.29.0",
-    "nyc": "^17.1.0",
     "request": "^2.88.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
