@@ -4,4 +4,5 @@ export interface Options {
   host?: string
   port?: number
   silent?: boolean
+  name?: string
 }

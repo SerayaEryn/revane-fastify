@@ -224,16 +224,18 @@ export class RevaneFastify {
   async #logApplication (): Promise<void> {
     if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
       const logger = await this.#context.getById('rootLogger')
-      logger.info(`Starting Application using Node.js ${process.version} on ${hostname()} with PID ${process.pid}`)
+      logger.info(`Starting ${this.#options.name ?? 'Application'} using Node.js ${process.version} on ${hostname()} with PID ${process.pid}`)
     }
   }
 
   async #logFastifyStartSuccessful (): Promise<void> {
     if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
       const logger = await this.#context.getById('rootLogger')
-      logger.info(`Fastify started on port: ${this.port()}`)
+      logger.info(`Revane started on port: ${this.port()} (http)`)
       const startUpTime = Date.now() - this.#startTime
-      logger.info(`Startup in ${startUpTime} ms`)
+      const seconds = Math.floor(startUpTime / 1000)
+      const milliseconds = startUpTime % 1000
+      logger.info(`Started ${this.#options.name ?? 'Application'} in ${seconds}.${milliseconds} seconds`)
     }
   }
 
