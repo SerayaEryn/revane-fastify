@@ -80,7 +80,6 @@ export class RevaneFastify {
     await this.#logApplication()
     await this.#promise
     const options = await this.#getHostAndPort(addressProviderId)
-    await this.#logFastifyStart()
     const address = await this.#server.listen({
       port: options.port, 
       host: options.host
@@ -223,22 +222,15 @@ export class RevaneFastify {
   }
 
   async #logApplication (): Promise<void> {
-    if (!this.#options.silent && await this.#context.hasById('logger')) {
-      const logger = await this.#context.getById('logger')
+    if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
+      const logger = await this.#context.getById('rootLogger')
       logger.info(`Starting Application using Node.js ${process.version} on ${hostname()} with PID ${process.pid}`)
     }
   }
 
-  async #logFastifyStart (): Promise<void> {
-    if (!this.#options.silent && await this.#context.hasById('logger')) {
-      const logger = await this.#context.getById('logger')
-      logger.info(`Starting Fastify`)
-    }
-  }
-
   async #logFastifyStartSuccessful (): Promise<void> {
-    if (!this.#options.silent && await this.#context.hasById('logger')) {
-      const logger = await this.#context.getById('logger')
+    if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
+      const logger = await this.#context.getById('rootLogger')
       logger.info(`Fastify started on port: ${this.port()}`)
       const startUpTime = Date.now() - this.#startTime
       logger.info(`Startup in ${startUpTime} ms`)
@@ -246,8 +238,8 @@ export class RevaneFastify {
   }
 
   async #registerAccessLogger () {
-    if (!this.#options.silent && await this.#context.hasById('logger')) {
-      const logger = await this.#context.getById('logger')
+    if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
+      const logger = await this.#context.getById('rootLogger')
       if (await this.#accessLogEnabled()) {
         this.#server.addHook('onRequest', async (request: FastifyRequest, _: FastifyReply) => {
           logger.info(`${request.method} ${request.url}`)

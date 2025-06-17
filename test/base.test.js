@@ -23,7 +23,7 @@ const revane = {
     if (key === 'handler') {
       return new TestHandler()
     }
-    if (key === 'logger') {
+    if (key === 'rootLogger') {
       return logger
     }
   },

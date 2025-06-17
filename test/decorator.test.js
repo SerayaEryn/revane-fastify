@@ -9,7 +9,7 @@ const beanProvider = {
     if (key === 'userController') {
       return new UserController()
     }
-    if (key === 'logger') {
+    if (key === 'rootLogger') {
       return new TestLogger()
     }
   },
