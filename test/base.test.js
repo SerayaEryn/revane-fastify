@@ -1,5 +1,4 @@
 import fastifyPlugin from 'fastify-plugin'
-import request from 'request'
 import test from 'ava'
 import { revaneFastify } from '../src/RevaneFastify.js'
 import TestController from '../testdata/TestController.js'
@@ -56,33 +55,24 @@ test('Should register controller', (t) => {
 })
 
 test('Should bind and create plugin', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(4)
+  t.plan(3)
 
-    logger.reset()
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .register('testController2')
-      .listen()
-      .then(() => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 200)
-          t.is(body.toString(), 'test')
-          instance.close()
-          t.true(logger.messages.includes('GET /'))
-          resolve()
-        })
-      })
-  })
+  logger.reset()
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .register('testController2')
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text();
+  t.is(response.status, 200)
+  t.is(data.toString(), 'test')
+  instance.close()
+  t.true(logger.messages.includes('GET /'))
 })
 
 test('Should register plugin', (t) => {
@@ -121,262 +111,193 @@ test('Should call after', (t) => {
 })
 
 test('Should set not found handler', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(4)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .setNotFoundHandler(function (request, reply) {
-        reply.code(404)
-        reply.send('test')
-      })
-      .ready()
-      .listen()
-      .then(() => {
-        t.pass()
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/test`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 404)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .setNotFoundHandler(function (request, reply) {
+      reply.code(404)
+      reply.send('test')
+    })
+    .ready()
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/test`)
+  const data = await response.text();
+  t.is(response.status, 404)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should set not found handler by id', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(4)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .setNotFoundHandler('handler')
-      .ready()
-      .listen()
-      .then(() => {
-        t.pass()
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/test`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 404)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .setNotFoundHandler('handler')
+    .ready()
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/test`)
+  const data = await response.text()
+  t.is(response.status, 404)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should set error handler by id', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .register(fastifyPlugin((instance, opts, next) => {
-        instance.get('/', function (request, reply) {
-          reply.send(new Error())
-        })
-        next()
-      }))
-      .setErrorHandler('handler')
-      .ready()
-      .listen()
-      .then(() => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 500)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .register(fastifyPlugin((instance, opts, next) => {
+      instance.get('/', function (request, reply) {
+        reply.send(new Error())
       })
-  })
+      next()
+    }))
+    .setErrorHandler('handler')
+    .ready()
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text()
+  t.is(response.status, 500)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should set error handler', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(4)
+  t.plan(3)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .register(fastifyPlugin((instance, opts, next) => {
-        instance.get('/', function (request, reply) {
-          reply.send(new Error())
-        })
-        next()
-      }))
-      .setErrorHandler(function (error, request, reply) {
-        t.truthy(error)
-        reply.code(500)
-          .send('test')
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .register(fastifyPlugin((instance, opts, next) => {
+      instance.get('/', function (request, reply) {
+        reply.send(new Error())
       })
-      .ready()
-      .listen()
-      .then(() => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 500)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
+      next()
+    }))
+    .setErrorHandler(function (error, request, reply) {
+      t.truthy(error)
+      reply.code(500)
+        .send('test')
+    })
+    .ready()
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text()
+  t.is(response.status, 500)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should start server', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .register('testController')
-      .register(fastifyPlugin(plugin))
-      .listen()
-      .then((address) => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 200)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .register('testController')
+    .register(fastifyPlugin(plugin))
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text()
+  t.is(response.status, 200)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should start server using addressProvider', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
+  t.plan(2)
 
-    const options = {
-      port: 0,
-      silent: true
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .register('testController')
-      .register(fastifyPlugin(plugin))
-      .listen('config')
-      .then((address) => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 200)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
+  const options = {
+    port: 0,
+    silent: true
+  }
+  const instance = revaneFastify(options, revane)
+  await instance
+    .register('testController')
+    .register(fastifyPlugin(plugin))
+    .listen('config')
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text()
+  t.is(response.status, 200)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
 test('Should start server using addressProvider and registerControllers', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
-
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, revane)
-    instance
-      .registerControllers()
-      .register(fastifyPlugin(plugin))
-      .listen('config')
-      .then((address) => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 200)
-          t.is(body.toString(), 'test')
-          instance.close()
-          resolve()
-        })
-      })
-  })
-})
-
-test('listen should call callback with string', (t) => {
-  t.plan(1)
+  t.plan(2)
 
   const options = {
     port: 0
   }
   const instance = revaneFastify(options, revane)
-  return instance
+  await instance
     .registerControllers()
     .register(fastifyPlugin(plugin))
     .listen('config')
-    .then((address) => {
-      t.true(typeof address === 'string')
-      instance.close()
-    })
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/`)
+  const data = await response.text()
+  t.is(response.status, 200)
+  t.is(data.toString(), 'test')
+  instance.close()
 })
 
-test('should register plugin without name', (t) => {
+test('listen should call callback with string', async (t) => {
   t.plan(1)
 
   const options = {
     port: 0
   }
   const instance = revaneFastify(options, revane)
-  return instance
+  const address = await instance
+    .registerControllers()
+    .register(fastifyPlugin(plugin))
+    .listen('config')
+  t.true(typeof address === 'string')
+  instance.close()
+})
+
+test('should register plugin without name', async (t) => {
+  t.plan(1)
+
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, revane)
+  const address = await instance
     .registerControllers()
     .register(fastifyPlugin((instance, options, next) => next()))
     .listen('config')
-    .then((address) => {
-      t.true(typeof address === 'string')
-      instance.close()
-    })
+  t.true(typeof address === 'string')
+  instance.close()
 })
 
 test('Should handle error in plugin in listen', (t) => {

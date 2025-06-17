@@ -1,4 +1,3 @@
-import request from 'request'
 import test from 'ava'
 import { revaneFastify } from '../src/RevaneFastify.js'
 import { ErrorHandlerController } from '../testdata/ErrorHandlerController.js'
@@ -20,59 +19,39 @@ const beanProvider = {
 }
 
 test('errorhandler with errorCode and statusCode', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, beanProvider)
-    instance
-      .register('userController')
-      .listen()
-      .then(() => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/error1`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 505)
-          t.is(body.toString(), 'err1')
-          instance.close()
-          resolve()
-        })
-      })
-      .catch(console.error)
-  })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, beanProvider)
+  await instance
+    .register('userController')
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/error1`)
+  const data = await response.text()
+  t.is(response.status, 505)
+  t.is(data.toString(), 'err1')
+  instance.close()
 })
 
 test('errorhandler without errorCode and statusCode', async (t) => {
-  return new Promise((resolve, reject) => {
-    t.plan(3)
+  t.plan(2)
 
-    const options = {
-      port: 0
-    }
-    const instance = revaneFastify(options, beanProvider)
-    instance
-      .register('userController')
-      .listen()
-      .then(() => {
-        instance.unref()
-        const port = instance.port()
-        request({
-          method: 'GET',
-          uri: `http://localhost:${port}/error2`
-        }, (err, response, body) => {
-          t.falsy(err)
-          t.is(response.statusCode, 500)
-          t.is(body.toString(), 'allerrors')
-          instance.close()
-          resolve()
-        })
-      })
-      .catch(console.error)
-  })
+  const options = {
+    port: 0
+  }
+  const instance = revaneFastify(options, beanProvider)
+  await instance
+    .register('userController')
+    .listen()
+  instance.unref()
+  const port = instance.port()
+  const response = await fetch(`http://localhost:${port}/error2`)
+  const data = await response.text()
+  t.is(response.status, 500)
+  t.is(data.toString(), 'allerrors')
+  instance.close()
 })
