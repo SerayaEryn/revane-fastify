@@ -5,147 +5,167 @@ import {
   RouteHandlerMethod,
   FastifyPluginOptions,
   FastifyReply,
-  FastifyRequest
-} from 'fastify'
-import fastifyPlugin from 'fastify-plugin'
-import { ErrorHandlerDefinition } from './Decorators.js'
-import { RevaneFastifyResponse } from './RevaneFastifyReponse.js'
-import { RevaneFastifyRequest } from './RevaneFastifyRequest.js'
+  FastifyRequest,
+} from "fastify";
+import fastifyPlugin from "fastify-plugin";
+import { ErrorHandlerDefinition } from "./Decorators.js";
+import { RevaneFastifyResponse } from "./RevaneFastifyReponse.js";
+import { RevaneFastifyRequest } from "./RevaneFastifyRequest.js";
 import {
   decoratorDrivenSym,
   errorHandlersSym,
   fallbackErrorHandlerSym,
-  routesSym
-} from './Symbols.js'
+  routesSym,
+} from "./Symbols.js";
 
 interface Parameter {
-  type: string
-  name: string
-  all: boolean
+  type: string;
+  name: string;
+  all: boolean;
 }
 
-export function isDecoratorDriven (target): boolean {
-  return Reflect.getMetadata(decoratorDrivenSym, target) === true
+export function isDecoratorDriven(target): boolean {
+  return Reflect.getMetadata(decoratorDrivenSym, target) === true;
 }
 
-export function buildPlugin (target): FastifyPluginCallback {
-  const routes = Reflect.getMetadata(routesSym, target)
-  const errorHandler = buildErrorHandler(target)
-  function plugin (fastify: FastifyInstance, options: FastifyPluginOptions, next): void {
+export function buildPlugin(target): FastifyPluginCallback {
+  const routes = Reflect.getMetadata(routesSym, target);
+  const errorHandler = buildErrorHandler(target);
+  function plugin(
+    fastify: FastifyInstance,
+    options: FastifyPluginOptions,
+    next,
+  ): void {
     for (const key in routes) {
-      const route: any = routes[key]
-      const options: RouteOptions = route.options || {}
-      options.url = route.url
-      options.method = route.method
+      const route: any = routes[key];
+      const options: RouteOptions = route.options || {};
+      options.url = route.url;
+      options.method = route.method;
       if (!options.url || !options.method) {
-        continue
+        continue;
       }
-      const boundHandler = target[route.handlerFunction].bind(target)
+      const boundHandler = target[route.handlerFunction].bind(target);
       if (route.parameters) {
-        options.handler = buildHandler(route.parameters || [], boundHandler)
+        options.handler = buildHandler(route.parameters || [], boundHandler);
       } else {
-        options.handler = boundHandler as RouteHandlerMethod
+        options.handler = boundHandler as RouteHandlerMethod;
       }
       if (errorHandler != null) {
-        options.errorHandler = errorHandler
+        options.errorHandler = errorHandler;
       }
-      fastify.route(options)
+      fastify.route(options);
     }
-    next()
+    next();
   }
-  return fastifyPlugin(plugin)
+  return fastifyPlugin(plugin);
 }
 
 type ErrorHandler = (
   error: NodeJS.ErrnoException,
   request: FastifyRequest,
-  reply: FastifyReply
-) => Promise<void>
+  reply: FastifyReply,
+) => Promise<void>;
 
-export function buildGlobalErrorHandler (
-  controllerAdvices: any[]
+export function buildGlobalErrorHandler(
+  controllerAdvices: any[],
 ): ErrorHandler | null {
-  const controllerAdvicesWithHandler = controllerAdvices
-    .filter((controllerAdvice) => isErrorHandler(controllerAdvice))
+  const controllerAdvicesWithHandler = controllerAdvices.filter(
+    (controllerAdvice) => isErrorHandler(controllerAdvice),
+  );
   if (controllerAdvicesWithHandler.length > 0) {
-    return buildErrorHandler(controllerAdvicesWithHandler[0])
+    return buildErrorHandler(controllerAdvicesWithHandler[0]);
   } else {
-    return null
+    return null;
   }
 }
 
-function isErrorHandler (controllerAdvice: any): unknown {
-  return Reflect.getMetadata(errorHandlersSym, controllerAdvice) != null ||
+function isErrorHandler(controllerAdvice: any): unknown {
+  return (
+    Reflect.getMetadata(errorHandlersSym, controllerAdvice) != null ||
     Reflect.getMetadata(fallbackErrorHandlerSym, controllerAdvice) != null
+  );
 }
 
-export function buildErrorHandler (target): ErrorHandler | null {
+export function buildErrorHandler(target): ErrorHandler | null {
   // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
   const errorHandlers: { [cookieName: string]: ErrorHandlerDefinition } =
-    Reflect.getMetadata(errorHandlersSym, target) || {}
-  const fallbackErrorHandler: ErrorHandlerDefinition =
-    Reflect.getMetadata(fallbackErrorHandlerSym, target)
+    Reflect.getMetadata(errorHandlersSym, target) || {};
+  const fallbackErrorHandler: ErrorHandlerDefinition = Reflect.getMetadata(
+    fallbackErrorHandlerSym,
+    target,
+  );
   if (Object.keys(errorHandlers).length > 0 || fallbackErrorHandler != null) {
-    return async function errorHander (
+    return async function errorHander(
       error: NodeJS.ErrnoException,
       request: FastifyRequest,
-      reply: FastifyReply
+      reply: FastifyReply,
     ) {
       for (const key of Object.keys(errorHandlers)) {
-        const errorHandler = errorHandlers[key]
+        const errorHandler = errorHandlers[key];
         if (errorHandler.errorCode === error.code) {
-          reply.status(errorHandler.statusCode || 500)
+          reply.status(errorHandler.statusCode || 500);
           return errorHandler.handlerFunction.bind(target)(
             error,
             new RevaneFastifyRequest(request),
-            new RevaneFastifyResponse(reply))
+            new RevaneFastifyResponse(reply),
+          );
         }
       }
       if (fallbackErrorHandler != null) {
-        reply.status(fallbackErrorHandler.statusCode || errorHandlers[fallbackErrorHandler.handlerName]?.statusCode || 500)
+        reply.status(
+          fallbackErrorHandler.statusCode ||
+            errorHandlers[fallbackErrorHandler.handlerName]?.statusCode ||
+            500,
+        );
         return fallbackErrorHandler.handlerFunction.bind(target)(
           error,
           new RevaneFastifyRequest(request),
-          new RevaneFastifyResponse(reply))
+          new RevaneFastifyResponse(reply),
+        );
       }
-      throw error
-    }
+      throw error;
+    };
   }
-  return null
+  return null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function buildHandler (parameters: Parameter[], handler: Function): RouteHandlerMethod {
-  const src = buildHandlerString(parameters)
+function buildHandler(
+  parameters: Parameter[],
+  handler: Function,
+): RouteHandlerMethod {
+  const src = buildHandlerString(parameters);
   const handlerFunction = new Function(
-    'handler',
-    'RevaneFastifyReply',
-    'RevaneFastifyRequest',
-    src
-  )
-  return handlerFunction(handler, RevaneFastifyResponse, RevaneFastifyRequest)
+    "handler",
+    "RevaneFastifyReply",
+    "RevaneFastifyRequest",
+    src,
+  );
+  return handlerFunction(handler, RevaneFastifyResponse, RevaneFastifyRequest);
 }
 
-function buildHandlerString (parameters: Parameter[]): string {
-  return 'return async function route (request, reply) {\n' +
+function buildHandlerString(parameters: Parameter[]): string {
+  return (
+    "return async function route (request, reply) {\n" +
     `  return await handler(${buildArgsString(parameters)})\n` +
-    '}'
+    "}"
+  );
 }
 
-function buildArgsString (parameters: Parameter[]): string {
-  const args = []
+function buildArgsString(parameters: Parameter[]): string {
+  const args = [];
   for (const parameter of parameters) {
-    if (parameter.type === 'reply') {
-      args.push('new RevaneFastifyReply(reply)')
-    } else if (parameter.type === 'request') {
-      args.push('new RevaneFastifyRequest(request)')
+    if (parameter.type === "reply") {
+      args.push("new RevaneFastifyReply(reply)");
+    } else if (parameter.type === "request") {
+      args.push("new RevaneFastifyRequest(request)");
     } else {
       if (parameter.all) {
-        args.push(`request['${parameter.type}']`)
+        args.push(`request['${parameter.type}']`);
       } else {
-        args.push(`request['${parameter.type}']['${parameter.name}']`)
+        args.push(`request['${parameter.type}']['${parameter.name}']`);
       }
     }
   }
-  return args.join(', ')
+  return args.join(", ");
 }
