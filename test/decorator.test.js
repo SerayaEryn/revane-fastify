@@ -15,6 +15,9 @@ const beanProvider = {
   hasById() {
     return true;
   },
+  getByComponentType() {
+    return [];
+  },
 };
 
 test("get", async (t) => {

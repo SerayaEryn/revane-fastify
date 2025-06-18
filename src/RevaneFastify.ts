@@ -86,6 +86,7 @@ export class RevaneFastify {
 
   public async listen(addressProviderId: string): Promise<string> {
     await this.#logApplication();
+    this.registerGlobalErrorHandler();
     await this.#promise;
     const options = await this.#getHostAndPort(addressProviderId);
     const address = await this.#server.listen({
