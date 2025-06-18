@@ -112,11 +112,12 @@ function getName(
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createErrorHandlerDecorator(): Function {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   return function decorator(
     targetOrErrorCode: string | any,
     propertyKey: string,
     _: PropertyDescriptor,
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   ): Function {
     if (typeof targetOrErrorCode === "string") {
       return function errorHandlerDecorator(

@@ -129,43 +129,44 @@ export function buildErrorHandler(target): ErrorHandler | null {
   return null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function buildHandler(
   parameters: Parameter[],
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   handler: Function,
 ): RouteHandlerMethod {
-  const src = buildHandlerString(parameters);
-  const handlerFunction = new Function(
-    "handler",
-    "RevaneFastifyReply",
-    "RevaneFastifyRequest",
-    src,
-  );
-  return handlerFunction(handler, RevaneFastifyResponse, RevaneFastifyRequest);
-}
-
-function buildHandlerString(parameters: Parameter[]): string {
-  return (
-    "return async function route (request, reply) {\n" +
-    `  return await handler(${buildArgsString(parameters)})\n` +
-    "}"
-  );
-}
-
-function buildArgsString(parameters: Parameter[]): string {
-  const args = [];
-  for (const parameter of parameters) {
-    if (parameter.type === "reply") {
-      args.push("new RevaneFastifyReply(reply)");
-    } else if (parameter.type === "request") {
-      args.push("new RevaneFastifyRequest(request)");
-    } else {
-      if (parameter.all) {
-        args.push(`request['${parameter.type}']`);
+  if (parameters.length === 0) {
+    return async function route(
+      _request: FastifyRequest,
+      _reply: FastifyReply,
+    ) {
+      return await handler();
+    };
+  }
+  if (parameters.length === 1 && parameters[0].type === "reply") {
+    return async function route(_request: FastifyRequest, reply: FastifyReply) {
+      return await handler.apply(this, [new RevaneFastifyResponse(reply)]);
+    };
+  }
+  if (parameters.length === 1 && parameters[0].type === "request") {
+    return async function route(request: FastifyRequest, _reply: FastifyReply) {
+      return await handler.apply(this, [new RevaneFastifyRequest(request)]);
+    };
+  }
+  return async function route(request: FastifyRequest, reply: FastifyReply) {
+    const args = [];
+    for (const parameter of parameters) {
+      if (parameter.type === "reply") {
+        args.push(new RevaneFastifyResponse(reply));
+      } else if (parameter.type === "request") {
+        args.push(new RevaneFastifyRequest(request));
       } else {
-        args.push(`request['${parameter.type}']['${parameter.name}']`);
+        if (parameter.all) {
+          args.push(request[parameter.type]);
+        } else {
+          args.push(request[parameter.type][parameter.name]);
+        }
       }
     }
-  }
-  return args.join(", ");
+    return await handler.apply(this, args);
+  };
 }
