@@ -231,6 +231,8 @@ export class RevaneFastify {
   async #logFastifyStartSuccessful (): Promise<void> {
     if (!this.#options.silent && await this.#context.hasById('rootLogger')) {
       const logger = await this.#context.getById('rootLogger')
+      const fastifyVersion = this.#server.version
+      logger.info(`Starting Servlet engine: [Fastify/${fastifyVersion}]`)
       logger.info(`Revane started on port: ${this.port()} (http)`)
       const startUpTime = Date.now() - this.#startTime
       const seconds = Math.floor(startUpTime / 1000)
