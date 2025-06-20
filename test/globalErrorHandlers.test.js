@@ -12,6 +12,13 @@ const beanProvider = {
     if (key === "rootLogger") {
       return new TestLogger();
     }
+    if (key === "configuration") {
+      return {
+        getBooleanOrElse: () => {
+          return false;
+        },
+      };
+    }
   },
   hasById() {
     return true;

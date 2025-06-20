@@ -17,6 +17,7 @@ import fastifyCookie from "@fastify/cookie";
 import { RevaneRequest } from "./RevaneRequest.js";
 import { RevaneFastifyContext } from "./RevaneFastifyContext.js";
 import { hostname } from "node:os";
+import { fastifyCompress } from "@fastify/compress";
 
 interface Controller {
   plugin: FastifyPluginCallback;
@@ -24,6 +25,7 @@ interface Controller {
 }
 
 const ACCESS_LOG_ENABLED = "revane.access-logging.enabled";
+const COMPRESSION_ENABLED = "revane.server.compression.enabled";
 
 export * from "./Decorators.js";
 export { RevaneResponse, RevaneRequest, RevaneFastifyContext };
@@ -87,6 +89,7 @@ export class RevaneFastify {
   public async listen(addressProviderId: string): Promise<string> {
     await this.#logApplication();
     this.registerGlobalErrorHandler();
+    await this.#registerCompression();
     await this.#promise;
     const options = await this.#getHostAndPort(addressProviderId);
     const address = await this.#server.listen({
@@ -95,6 +98,15 @@ export class RevaneFastify {
     });
     await this.#logFastifyStartSuccessful();
     return address;
+  }
+
+  async #registerCompression(): Promise<void> {
+    const configuration = await this.#context.getById("configuration");
+    if (configuration.getBooleanOrElse(COMPRESSION_ENABLED, false)) {
+      this.#server.register(fastifyPlugin(fastifyCompress), {
+        inflateIfDeflated: true,
+      });
+    }
   }
 
   public async close(): Promise<void> {
@@ -299,12 +311,7 @@ export class RevaneFastify {
 
   async #accessLogEnabled(): Promise<boolean> {
     const configuration = await this.#context.getById("configuration");
-    if (configuration == null) {
-      return true;
-    }
-    return !configuration.has(ACCESS_LOG_ENABLED)
-      ? true
-      : configuration.getBoolean(ACCESS_LOG_ENABLED);
+    return configuration.getBooleanOrElse(ACCESS_LOG_ENABLED, true);
   }
 }
 

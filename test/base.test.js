@@ -25,6 +25,16 @@ const revane = {
     if (key === "rootLogger") {
       return logger;
     }
+    if (key === "configuration") {
+      return {
+        getBooleanOrElse: (key) => {
+          if (key === "revane.access-logging.enabled") {
+            return true;
+          }
+          return false;
+        },
+      };
+    }
   },
   hasById() {
     return true;

@@ -10,6 +10,11 @@ export default class TestController {
       reply.code(200)
       reply.send('test')
     })
+    fastify.get('/big', (request, reply) => {
+      reply.code(200)
+      reply.header('content-type', 'text/plain')
+      reply.send('x'.repeat(2*1024))
+    })
     next()
   }
 }
