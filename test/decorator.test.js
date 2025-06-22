@@ -2,6 +2,7 @@ import test from "ava";
 import { revaneFastify } from "../src/RevaneFastify.js";
 import { UserController } from "../testdata/UserController.js";
 import { TestLogger } from "../testdata/TestLogger.js";
+import { join } from "node:path";
 
 const beanProvider = {
   getById(key) {
@@ -13,6 +14,12 @@ const beanProvider = {
     }
     if (key === "configuration") {
       return {
+        getString(key) {
+          if (key === "revane.basePackage") {
+            return join(import.meta.dirname, "../testdata");
+          }
+          return "";
+        },
         getBooleanOrElse: () => {
           return false;
         },

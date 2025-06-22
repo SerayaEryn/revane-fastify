@@ -18,6 +18,8 @@ import { RevaneRequest } from "./RevaneRequest.js";
 import { RevaneFastifyContext } from "./RevaneFastifyContext.js";
 import { hostname } from "node:os";
 import { fastifyCompress } from "@fastify/compress";
+import { fastifyStatic } from "@fastify/static";
+import { join } from "node:path";
 
 interface Controller {
   plugin: FastifyPluginCallback;
@@ -26,6 +28,7 @@ interface Controller {
 
 const ACCESS_LOG_ENABLED = "revane.access-logging.enabled";
 const COMPRESSION_ENABLED = "revane.server.compression.enabled";
+const SERVE_STATIC_FILES_ENABLED = "revane.server.static-files.enabled";
 
 export * from "./Decorators.js";
 export { RevaneResponse, RevaneRequest, RevaneFastifyContext };
@@ -90,6 +93,7 @@ export class RevaneFastify {
     await this.#logApplication();
     this.registerGlobalErrorHandler();
     await this.#registerCompression();
+    await this.#enableServingStaticFiles();
     await this.#promise;
     const options = await this.#getHostAndPort(addressProviderId);
     const address = await this.#server.listen({
@@ -105,6 +109,22 @@ export class RevaneFastify {
     if (configuration.getBooleanOrElse(COMPRESSION_ENABLED, false)) {
       this.#server.register(fastifyPlugin(fastifyCompress), {
         inflateIfDeflated: true,
+      });
+    }
+  }
+
+  async #enableServingStaticFiles(): Promise<void> {
+    const configuration = await this.#context.getById("configuration");
+    if (configuration.getBooleanOrElse(SERVE_STATIC_FILES_ENABLED, false)) {
+      const basePackage = configuration.getString("revane.basePackage");
+      this.#server.register(fastifyPlugin(fastifyStatic), {
+        root: join(basePackage, "./static"),
+        prefix: "/static/",
+      });
+      this.#server.register(fastifyPlugin(fastifyStatic), {
+        root: join(basePackage, "./resources"),
+        prefix: "/resources/",
+        decorateReply: false,
       });
     }
   }

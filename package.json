@@ -11,7 +11,7 @@
     "coverage": "c8 --reporter=lcov npm test",
     "compile": "tsc -d",
     "prepublishOnly": "npm run compile -s",
-    "postbuild": "cpy 'testdata/**/*.js' bin/testdata && cpy 'test/**/*.js' bin/test"
+    "postbuild": "cpy 'testdata/**/*.json' bin/testdata && cpy 'testdata/**/*.js' bin/testdata && cpy 'test/**/*.js' bin/test"
   },
   "author": "Denis Fäcke",
   "license": "MIT",
@@ -33,6 +33,7 @@
   "dependencies": {
     "@fastify/compress": "^8.0.3",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/static": "^8.2.0",
     "acorn": "^8.15.0",
     "fastify": "^5.4.0",
     "fastify-plugin": "^5.0.1",

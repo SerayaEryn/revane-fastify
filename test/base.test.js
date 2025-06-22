@@ -6,6 +6,7 @@ import TestController2 from "../testdata/TestController2.js";
 import { TestAddressProvider } from "../testdata/TestAddressProvider.js";
 import TestHandler from "../testdata/TestHandler.js";
 import { TestLogger } from "../testdata/TestLogger.js";
+import { join } from "node:path";
 
 const logger = new TestLogger();
 const revane = {
@@ -27,8 +28,17 @@ const revane = {
     }
     if (key === "configuration") {
       return {
+        getString(key) {
+          if (key === "revane.basePackage") {
+            return join(import.meta.dirname, "../testdata");
+          }
+          return "";
+        },
         getBooleanOrElse: (key) => {
           if (key === "revane.access-logging.enabled") {
+            return true;
+          }
+          if (key === "revane.server.static-files.enabled") {
             return true;
           }
           return false;
@@ -81,6 +91,29 @@ test("Should bind and create plugin", async (t) => {
   t.is(data.toString(), "test");
   instance.close();
   t.true(logger.messages.includes("GET /"));
+});
+
+test("Should serve static file", async (t) => {
+  t.plan(5);
+
+  logger.reset();
+  const options = {
+    port: 0,
+  };
+  const instance = revaneFastify(options, revane);
+  await instance.listen();
+  instance.unref();
+  const port = instance.port();
+  const response = await fetch(`http://localhost:${port}/static/test.json`);
+  const data = await response.text();
+  t.is(response.status, 200);
+  t.is(data.toString(), '{ "hallo": "welt"}');
+  const response2 = await fetch(`http://localhost:${port}/resources/test.json`);
+  const data2 = await response2.text();
+  t.is(response2.status, 200);
+  t.is(data2.toString(), '{ "hallo": "welt"}');
+  instance.close();
+  t.true(logger.messages.includes("GET /static/test.json"));
 });
 
 test("Should register plugin", (t) => {

@@ -4,6 +4,7 @@ import TestController from "../testdata/TestController.js";
 import { TestAddressProvider } from "../testdata/TestAddressProvider.js";
 import TestHandler from "../testdata/TestHandler.js";
 import { TestLogger } from "../testdata/TestLogger.js";
+import { join } from "node:path";
 
 const logger = new TestLogger();
 const revane = {
@@ -22,6 +23,12 @@ const revane = {
     }
     if (key === "configuration") {
       return {
+        getString(key) {
+          if (key === "revane.basePackage") {
+            return join(import.meta.dirname, "../testdata");
+          }
+          return "";
+        },
         getBooleanOrElse: () => {
           return true;
         },
