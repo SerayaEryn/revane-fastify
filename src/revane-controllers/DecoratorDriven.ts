@@ -9,18 +9,19 @@ import {
 } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 import { ErrorHandlerDefinition } from "./Decorators.js";
-import { RevaneFastifyResponse } from "./RevaneFastifyReponse.js";
-import { RevaneFastifyRequest } from "./RevaneFastifyRequest.js";
+import { RevaneFastifyResponse } from "../RevaneFastifyReponse.js";
+import { RevaneFastifyRequest } from "../RevaneFastifyRequest.js";
 import {
   decoratorDrivenSym,
   errorHandlersSym,
   fallbackErrorHandlerSym,
   routesSym,
-} from "./Symbols.js";
-import { Parameter } from "./Parameter.js";
-import { ModelAttributeProvider } from "./revane-modelattribute/ModelAttributeProvider.js";
-import { BeanAndMethod } from "./revane-modelattribute/BeanAndMethod.js";
-import { extractModelAttributProviders } from "./revane-modelattribute/ModelAttributSupplier.js";
+} from "../Symbols.js";
+import { Parameter, ParameterType } from "./Parameter.js";
+import { ModelAttributeConverter } from "../revane-modelattribute/ModelAttributeProvider.js";
+import { BeanAndMethod } from "../revane-modelattribute/BeanAndMethod.js";
+import { modelAttributConvertersForParameters } from "../revane-modelattribute/ModelAttributSupplier.js";
+import { Routes } from "./Route.js";
 
 export function isDecoratorDriven(target): boolean {
   return Reflect.getMetadata(decoratorDrivenSym, target) === true;
@@ -30,41 +31,40 @@ export function buildPlugin(
   target,
   modelAttributeBeans: Map<string, BeanAndMethod>,
 ): FastifyPluginCallback {
-  const routes = Reflect.getMetadata(routesSym, target);
+  const routes: Routes = Reflect.getMetadata(routesSym, target);
   const errorHandler = buildErrorHandler(target);
+  const allOptions = [];
+  for (const routeName in routes) {
+    const route: any = routes[routeName];
+    const options: RouteOptions = route.options ?? {};
+    options.url = route.url;
+    options.method = route.method;
+    if (!options.url || !options.method) {
+      continue;
+    }
+    const { parameters, handlerFunction } = route;
+    const boundHandler: RouteHandlerMethod =
+      target[handlerFunction].bind(target);
+    if (parameters) {
+      options.handler = buildHandler(
+        parameters || [],
+        boundHandler,
+        modelAttributConvertersForParameters(parameters, modelAttributeBeans),
+      );
+    } else {
+      options.handler = boundHandler;
+    }
+    if (errorHandler != null) {
+      options.errorHandler = errorHandler;
+    }
+    allOptions.push(options);
+  }
   function plugin(
     fastify: FastifyInstance,
     options: FastifyPluginOptions,
     next,
   ): void {
-    for (const key in routes) {
-      const route: any = routes[key];
-      const options: RouteOptions = route.options || {};
-      options.url = route.url;
-      options.method = route.method;
-      if (!options.url || !options.method) {
-        continue;
-      }
-      const handlerFunction = route.handlerFunction;
-      const boundHandler = target[handlerFunction].bind(target);
-      if (route.parameters) {
-        options.handler = buildHandler(
-          route.parameters || [],
-          boundHandler,
-          extractModelAttributProviders(
-            target,
-            handlerFunction,
-            modelAttributeBeans,
-          ),
-        );
-      } else {
-        options.handler = boundHandler as RouteHandlerMethod;
-      }
-      if (errorHandler != null) {
-        options.errorHandler = errorHandler;
-      }
-      fastify.route(options);
-    }
+    allOptions.forEach((it) => fastify.route(it));
     next();
   }
   return fastifyPlugin(plugin);
@@ -143,7 +143,7 @@ function buildHandler(
   parameters: Parameter[],
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   handler: Function,
-  modelAttribteProviders: Map<string, ModelAttributeProvider>,
+  modelAttributeConverters: Map<string, ModelAttributeConverter>,
 ): RouteHandlerMethod {
   if (parameters.length === 0) {
     return async function route(
@@ -153,12 +153,15 @@ function buildHandler(
       return await handler();
     };
   }
-  if (parameters.length === 1 && parameters[0].type === "reply") {
+  if (
+    parameters.length === 1 &&
+    parameters[0].type === ParameterType.RESPONSE
+  ) {
     return async function route(_request: FastifyRequest, reply: FastifyReply) {
       return await handler.apply(this, [new RevaneFastifyResponse(reply)]);
     };
   }
-  if (parameters.length === 1 && parameters[0].type === "request") {
+  if (parameters.length === 1 && parameters[0].type === ParameterType.REQUEST) {
     return async function route(request: FastifyRequest, _reply: FastifyReply) {
       return await handler.apply(this, [new RevaneFastifyRequest(request)]);
     };
@@ -166,48 +169,29 @@ function buildHandler(
   return async function route(request: FastifyRequest, reply: FastifyReply) {
     const args = [];
     for (const parameter of parameters) {
-      if (parameter.type === "reply") {
+      if (parameter.type === ParameterType.RESPONSE) {
         args.push(new RevaneFastifyResponse(reply));
-      } else if (parameter.type === "request") {
+      } else if (parameter.type === ParameterType.REQUEST) {
         args.push(new RevaneFastifyRequest(request));
-      } else if (parameter.type === "model-attribute") {
+      } else if (parameter.type === ParameterType.MODEL_ATTRIBUTE) {
         args.push(
-          await valueFromModelAttributeProdider(
-            request,
-            parameter,
-            modelAttribteProviders,
-          ),
+          await modelAttributeConverters.get(parameter.name).convert(request),
         );
       } else {
-        if (parameter.all) {
-          args.push(request[parameter.type]);
-        } else {
-          args.push(request[parameter.type][parameter.name]);
-        }
+        args.push(applyParameter(request, parameter));
       }
     }
     return await handler.apply(this, args);
   };
+}
 
-  async function valueFromModelAttributeProdider(
-    request: FastifyRequest,
-    parameter: Parameter,
-    modelAttribteProviders: Map<string, ModelAttributeProvider>,
-  ) {
-    const modelAttributeArgs = [];
-    for (const modelAttribteParameter of modelAttribteProviders.get(
-      parameter.name,
-    ).parameters) {
-      if (modelAttribteParameter.all) {
-        modelAttributeArgs.push(request[modelAttribteParameter.type]);
-      } else {
-        modelAttributeArgs.push(
-          request[modelAttribteParameter.type][modelAttribteParameter.name],
-        );
-      }
-    }
-    return await modelAttribteProviders
-      .get(parameter.name)
-      .provider(...modelAttributeArgs);
+export function applyParameter(
+  request: FastifyRequest,
+  parameter: Parameter,
+): any {
+  if (parameter.all) {
+    return request[parameter.type];
+  } else {
+    return request[parameter.type][parameter.name];
   }
 }

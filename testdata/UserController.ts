@@ -13,7 +13,7 @@ import {
   Log,
   Cookies,
   Post
-} from '../src/Decorators.js'
+} from '../src/revane-controllers/Decorators.js'
 import { Request, RevaneResponse } from '../src/RevaneFastify.js'
 import { RevaneRequest } from '../src/RevaneRequest.js'
 

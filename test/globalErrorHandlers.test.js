@@ -33,7 +33,7 @@ const beanProvider = {
   getByComponentType() {
     return Promise.resolve([new GlobalErrorHandler()]);
   },
-  getByMarker() {
+  getByMetadata() {
     return [];
   },
 };

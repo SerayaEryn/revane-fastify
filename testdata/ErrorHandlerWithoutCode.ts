@@ -2,7 +2,7 @@ import {
   Get,
   ResponseStatus,
   ErrorHandler
-} from '../src/Decorators.js'
+} from '../src/revane-controllers/Decorators.js'
 
 export class ErrorHandlerWithoutCode {
   @Get('/error1')

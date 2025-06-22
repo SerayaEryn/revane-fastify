@@ -1,4 +1,4 @@
-import { Get } from '../../src/Decorators.js'
+import { Get } from '../../src/revane-controllers/Decorators.js'
 
 export class UserController {
   @Get('/error1')

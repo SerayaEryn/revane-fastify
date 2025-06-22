@@ -52,7 +52,7 @@ const revane = {
   getByComponentType() {
     return [new TestController()];
   },
-  getByMarker() {
+  getByMetadata() {
     return [];
   },
 };

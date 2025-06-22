@@ -4,11 +4,13 @@ import {
   errorHandlersSym,
   fallbackErrorHandlerSym,
   routesSym,
-} from "./Symbols.js";
-import { RevaneRequest } from "./RevaneRequest.js";
-import { RevaneResponse } from "./RevaneFastify.js";
-import { getMetadata, setMetadata } from "./revane-util/Metadata.js";
-import { parameterName } from "./revane-util/ParameterName.js";
+} from "../Symbols.js";
+import { RevaneRequest } from "../RevaneRequest.js";
+import { RevaneResponse } from "../RevaneFastify.js";
+import { getMetadata, setMetadata } from "../revane-util/Metadata.js";
+import { parameterName } from "../revane-util/ParameterName.js";
+import { Routes } from "./Route.js";
+import { ParameterType } from "./Parameter.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createMethodDecorator(method: string | string[]): Function {
@@ -48,8 +50,10 @@ function createMethodDecorator(method: string | string[]): Function {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function createRequestSubValueParameterDecorator(type: string): Function {
+function createRequestSubValueParameterDecorator(
+  type: ParameterType,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+): Function {
   return function parameterDecorator(
     maybeName: string | object,
     maybePropertyKey?: string | symbol,
@@ -83,7 +87,7 @@ function createRequestSubValueParameterDecorator(type: string): Function {
   };
 }
 
-function createRequestValueParameterDecorator(type: string) {
+function createRequestValueParameterDecorator(type: ParameterType) {
   return function (
     target: object,
     propertyKey: string | symbol,
@@ -98,11 +102,11 @@ export function addParameterMetadata(
   maybeName: string,
   propertyKey: string | symbol,
   parameterIndex: number,
-  type: string,
+  type: ParameterType,
   all: boolean,
 ): void {
-  const routes = Reflect.getMetadata(routesSym, target) || {};
-  const name = maybeName || parameterName(target, propertyKey, parameterIndex);
+  const routes: Routes = Reflect.getMetadata(routesSym, target) ?? {};
+  const name = maybeName ?? parameterName(target, propertyKey, parameterIndex);
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] };
   }
@@ -215,24 +219,28 @@ export class ErrorHandlerDefinition {
   handlerName: string;
 }
 
-const Query = createRequestSubValueParameterDecorator("query");
-const Param = createRequestSubValueParameterDecorator("params");
-const Cookie = createRequestSubValueParameterDecorator("cookies");
-const Header = createRequestSubValueParameterDecorator("headers");
+const Query = createRequestSubValueParameterDecorator(ParameterType.QUERY);
+const Param = createRequestSubValueParameterDecorator(ParameterType.PARAMS);
+const Cookie = createRequestSubValueParameterDecorator(ParameterType.COOKIES);
+const Header = createRequestSubValueParameterDecorator(ParameterType.HEADERS);
 
 export { Query, Param, Cookie, Header };
 
-const Response = createRequestSubValueParameterDecorator("reply");
-const Request = createRequestSubValueParameterDecorator("request");
+const Response = createRequestSubValueParameterDecorator(
+  ParameterType.RESPONSE,
+);
+const Request = createRequestSubValueParameterDecorator(ParameterType.REQUEST);
 
 export { Response, Request };
 
-const Cookies = createRequestValueParameterDecorator("cookies");
-const Params = createRequestValueParameterDecorator("params");
-const QueryParameters = createRequestValueParameterDecorator("query");
-const Body = createRequestValueParameterDecorator("body");
-const Headers = createRequestValueParameterDecorator("headers");
-const Log = createRequestValueParameterDecorator("log");
+const Cookies = createRequestValueParameterDecorator(ParameterType.COOKIES);
+const Params = createRequestValueParameterDecorator(ParameterType.PARAMS);
+const QueryParameters = createRequestValueParameterDecorator(
+  ParameterType.QUERY,
+);
+const Body = createRequestValueParameterDecorator(ParameterType.BODY);
+const Headers = createRequestValueParameterDecorator(ParameterType.HEADERS);
+const Log = createRequestValueParameterDecorator(ParameterType.LOG);
 
 export { Cookies, Params, Headers, Log, QueryParameters, Body };
 

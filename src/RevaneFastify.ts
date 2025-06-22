@@ -10,7 +10,7 @@ import {
   isDecoratorDriven,
   buildPlugin,
   buildGlobalErrorHandler,
-} from "./DecoratorDriven.js";
+} from "./revane-controllers/DecoratorDriven.js";
 import { RevaneResponse } from "./RevaneResponse.js";
 import fastifyPlugin from "fastify-plugin";
 import fastifyCookie from "@fastify/cookie";
@@ -20,9 +20,17 @@ import { hostname } from "node:os";
 import { fastifyCompress } from "@fastify/compress";
 import { fastifyStatic } from "@fastify/static";
 import { join } from "node:path";
-import { modelAttributeMethodSym } from "./Symbols.js";
+import {
+  modelAttributeDuplicateSym,
+  modelAttributeMethodSym,
+} from "./Symbols.js";
 import { BeanAndMethod } from "./revane-modelattribute/BeanAndMethod.js";
 import { ModelAttribute } from "./revane-modelattribute/ModelAttribute.js";
+import {
+  DuplicateModelAttributeConverter,
+  REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
+} from "./revane-modelattribute/DuplicateModelAttributeConverter.js";
+import { REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER } from "./revane-modelattribute/MissingModelAttributeConverter.js";
 
 interface Controller {
   plugin: FastifyPluginCallback;
@@ -33,8 +41,15 @@ const ACCESS_LOG_ENABLED = "revane.access-logging.enabled";
 const COMPRESSION_ENABLED = "revane.server.compression.enabled";
 const SERVE_STATIC_FILES_ENABLED = "revane.server.static-files.enabled";
 
-export * from "./Decorators.js";
-export { RevaneResponse, RevaneRequest, RevaneFastifyContext, ModelAttribute };
+export * from "./revane-controllers/Decorators.js";
+export {
+  RevaneResponse,
+  RevaneRequest,
+  RevaneFastifyContext,
+  ModelAttribute,
+  REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
+  REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER,
+};
 
 export function revaneFastify(
   options: Options,
@@ -81,7 +96,7 @@ export class RevaneFastify {
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
         this.#server.register(
-          buildPlugin(controller, await this.#modelAttributeBeans()),
+          await buildPlugin(controller, await this.#modelAttributeBeans()),
         );
       } else {
         this.#registerPlugin(controller);
@@ -90,23 +105,21 @@ export class RevaneFastify {
   }
 
   async #modelAttributeBeans(): Promise<Map<string, BeanAndMethod>> {
-    const modelAttributeBeans = await this.#context.getByMarker(
+    const modelAttributeBeans = await this.#context.getByMetadata(
       modelAttributeMethodSym,
     );
     const map = new Map<string, BeanAndMethod>();
     for (const bean of modelAttributeBeans) {
+      const duplicate = Reflect.getMetadata(modelAttributeDuplicateSym, bean);
+      if (duplicate ?? false) {
+        throw new DuplicateModelAttributeConverter(duplicate);
+      }
       const meta: Map<string, string | symbol> = Reflect.getMetadata(
         modelAttributeMethodSym,
         bean,
       );
-      Array.from(meta.keys()).forEach((parameterName) => {
-        if (map.has(parameterName)) {
-          throw new Error("duplicate model attribute method");
-        }
-        map.set(
-          parameterName,
-          new BeanAndMethod(bean, meta.get(parameterName)),
-        );
+      meta.forEach((_, key) => {
+        map.set(key, new BeanAndMethod(bean, meta.get(key)));
       });
     }
     return map;
@@ -279,7 +292,7 @@ export class RevaneFastify {
       const pluginById = await this.#context.getById(plugin);
       if (isDecoratorDriven(pluginById)) {
         this.#server.register(
-          buildPlugin(pluginById, await this.#modelAttributeBeans()),
+          await buildPlugin(pluginById, await this.#modelAttributeBeans()),
         );
       } else {
         this.#registerPlugin(pluginById);

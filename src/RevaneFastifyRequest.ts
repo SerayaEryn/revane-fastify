@@ -13,8 +13,7 @@ export class RevaneFastifyRequest implements RevaneRequest {
     return this.request.originalUrl;
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  public cookies(): { [cookieName: string]: string } {
+  public cookies(): Record<string, string> {
     return this.request.cookies;
   }
 

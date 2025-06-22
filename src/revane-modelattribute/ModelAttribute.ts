@@ -1,7 +1,9 @@
+import { ParameterType } from "../revane-controllers/Parameter.js";
 import { getMetadata, setMetadata } from "../revane-util/Metadata.js";
 import { parameterName } from "../revane-util/ParameterName.js";
 import { addParameterMetadata } from "../RevaneFastify.js";
 import {
+  modelAttributeDuplicateSym,
   modelAttributeMethodSym,
   modelAttributeParameterSym,
 } from "../Symbols.js";
@@ -19,7 +21,7 @@ export function ModelAttribute(
       name,
       propertyKey as string,
       parameterIndex,
-      "model-attribute",
+      ParameterType.MODEL_ATTRIBUTE,
       false,
     );
   } else {
@@ -33,6 +35,9 @@ export function ModelAttribute(
       const key = typeof propertyKey === "string" ? propertyKey : context.name;
       const meta: Map<string, string | symbol> =
         getMetadata(modelAttributeMethodSym, target) ?? new Map();
+      if (meta.has(name)) {
+        setMetadata(modelAttributeDuplicateSym, name, target, context);
+      }
       meta.set(name, key);
       setMetadata(modelAttributeMethodSym, meta, target, context);
       return typeof propertyKey == "string" ? undefined : target;

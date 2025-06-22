@@ -1,9 +1,16 @@
-import { Parameter } from "../Parameter.js";
+import { FastifyRequest } from "fastify";
+import { Parameter } from "../revane-controllers/Parameter.js";
+import { applyParameter } from "../revane-controllers/DecoratorDriven.js";
 
-export class ModelAttributeProvider {
+export class ModelAttributeConverter {
   constructor(
-    public parameters: Parameter[],
+    private parameters: Parameter[],
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    public provider: Function,
+    private converter: Function,
   ) {}
+
+  async convert(request: FastifyRequest) {
+    const args = this.parameters.map((it) => applyParameter(request, it));
+    return await this.converter(...args);
+  }
 }

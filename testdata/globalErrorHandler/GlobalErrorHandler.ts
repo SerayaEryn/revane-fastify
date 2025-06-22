@@ -1,4 +1,4 @@
-import { ResponseStatus, ErrorHandler } from '../../src/Decorators.js'
+import { ResponseStatus, ErrorHandler } from '../../src/revane-controllers/Decorators.js'
 
 export class GlobalErrorHandler {
   @ErrorHandler('ERR1')

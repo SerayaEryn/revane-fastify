@@ -4,6 +4,7 @@ const errorHandlersSym = Symbol("revane.ErrorHandlers");
 const fallbackErrorHandlerSym = Symbol("revane.FallbackErrorHandler");
 const modelAttributeMethodSym = Symbol("revane.modelAttributeMethod");
 const modelAttributeParameterSym = Symbol("revane.modelAttributeParameter");
+const modelAttributeDuplicateSym = Symbol("revane.modelAttributeDuplicate");
 
 export {
   decoratorDrivenSym,
@@ -12,4 +13,5 @@ export {
   fallbackErrorHandlerSym,
   modelAttributeMethodSym,
   modelAttributeParameterSym,
+  modelAttributeDuplicateSym,
 };

@@ -32,7 +32,7 @@ const beanProvider = {
   getByComponentType() {
     return [];
   },
-  getByMarker() {
+  getByMetadata() {
     return [];
   },
 };
