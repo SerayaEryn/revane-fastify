@@ -8,27 +8,42 @@ import {
 } from "./Symbols.js";
 import { RevaneRequest } from "./RevaneRequest.js";
 import { RevaneResponse } from "./RevaneFastify.js";
+import { getMetadata, setMetadata } from "./revane-util/Metadata.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createMethodDecorator(method: string | string[]): Function {
   return function methodDecorator(url: string, options?: any) {
     return function decorate(
       target,
-      propertyKey: string,
+      propertyKey: string | ClassMethodDecoratorContext,
       _: PropertyDescriptor,
     ) {
-      Reflect.defineMetadata(decoratorDrivenSym, true, target);
-      const routes = Reflect.getMetadata(routesSym, target) || {};
+      setMetadata(
+        decoratorDrivenSym,
+        true,
+        target,
+        propertyKey as ClassMethodDecoratorContext,
+      );
+      const routes = getMetadata(routesSym, target) ?? {};
       const handlerFunction = propertyKey;
-      if (!routes[propertyKey]) {
-        routes[propertyKey] = { method, url, options, handlerFunction };
+      const key =
+        typeof propertyKey === "string"
+          ? propertyKey
+          : (propertyKey as ClassMethodDecoratorContext).name;
+      if (!routes[key]) {
+        routes[key] = { method, url, options, handlerFunction };
       } else {
-        routes[propertyKey].method = method;
-        routes[propertyKey].url = url;
-        routes[propertyKey].options = options;
-        routes[propertyKey].handlerFunction = handlerFunction;
+        routes[key].method = method;
+        routes[key].url = url;
+        routes[key].options = options;
+        routes[key].handlerFunction = handlerFunction;
       }
-      Reflect.defineMetadata(routesSym, routes, target);
+      setMetadata(
+        routesSym,
+        routes,
+        target,
+        propertyKey as ClassMethodDecoratorContext,
+      );
     };
   };
 }
@@ -110,33 +125,49 @@ function getName(
   return ast.body[0].params[parameterIndex].name;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function createErrorHandlerDecorator(): Function {
-  return function decorator(
-    targetOrErrorCode: string | any,
-    propertyKey: string,
-    _: PropertyDescriptor,
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  ): Function {
-    if (typeof targetOrErrorCode === "string") {
-      return function errorHandlerDecorator(
+function ErrorHandler(
+  targetOrErrorCode: string | any,
+  propertyKey?: string | ClassMethodDecoratorContext,
+  _?: PropertyDescriptor,
+) {
+  if (typeof targetOrErrorCode === "string") {
+    return function errorHandlerDecorator(
+      target,
+      propertyKey: string | ClassMethodDecoratorContext,
+      _: PropertyDescriptor,
+    ) {
+      const key =
+        typeof propertyKey === "string"
+          ? propertyKey
+          : (propertyKey as ClassMethodDecoratorContext).name;
+      addErrorHandlerMetadata(
         target,
-        propertyKey: string,
-        _: PropertyDescriptor,
-      ) {
-        addErrorHandlerMetadata(target, propertyKey, targetOrErrorCode);
-      };
-    } else {
-      addErrorHandlerMetadata(targetOrErrorCode, propertyKey, null);
-    }
-  };
+        key,
+        targetOrErrorCode,
+        propertyKey as ClassMethodDecoratorContext,
+      );
+      return typeof propertyKey == "string" ? undefined : target;
+    };
+  } else {
+    const key =
+      typeof propertyKey === "string"
+        ? propertyKey
+        : (propertyKey as ClassMethodDecoratorContext).name;
+    addErrorHandlerMetadata(
+      targetOrErrorCode,
+      key,
+      null,
+      propertyKey as ClassMethodDecoratorContext,
+    );
+    return typeof propertyKey == "string" ? undefined : targetOrErrorCode;
+  }
 }
 
 function addErrorHandlerMetadata(
   target: any,
-  propertyKey: string,
-  errorCode?: string,
+  propertyKey: string | symbol,
+  errorCode: string | null,
+  context: ClassMethodDecoratorContext,
 ): void {
   if (errorCode == null) {
     const errorHandler = {
@@ -144,9 +175,9 @@ function addErrorHandlerMetadata(
       errorCode: "__NONE",
       handlerName: propertyKey,
     };
-    Reflect.defineMetadata(fallbackErrorHandlerSym, errorHandler, target);
+    setMetadata(fallbackErrorHandlerSym, errorHandler, target, context);
   } else {
-    const errorHandlers = Reflect.getMetadata(errorHandlersSym, target) || {};
+    const errorHandlers = getMetadata(errorHandlersSym, target) || {};
     if (errorHandlers[propertyKey]) {
       errorHandlers[propertyKey].handlerFunction = target[propertyKey];
       errorHandlers[propertyKey].errorCode = errorCode;
@@ -158,27 +189,33 @@ function addErrorHandlerMetadata(
         handlerName: propertyKey,
       };
     }
-    Reflect.defineMetadata(errorHandlersSym, errorHandlers, target);
+    setMetadata(errorHandlersSym, errorHandlers, target, context);
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function createResponseStatusDecorator(): Function {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  return function decorator(statusCode: number): Function {
-    return function responseStatusDecorator(
+function ResponseStatus(statusCode: number): Function {
+  return function responseStatusDecorator(
+    target,
+    propertyKey: string | ClassMethodDecoratorContext,
+    _: PropertyDescriptor,
+  ) {
+    const errorHandlers = getMetadata(errorHandlersSym, target) ?? {};
+    const key =
+      typeof propertyKey === "string"
+        ? propertyKey
+        : (propertyKey as ClassMethodDecoratorContext).name;
+    if (errorHandlers[key]) {
+      errorHandlers[key].statusCode = statusCode;
+    } else {
+      errorHandlers[key] = { statusCode };
+    }
+    setMetadata(
+      errorHandlersSym,
+      errorHandlers,
       target,
-      propertyKey: string,
-      _: PropertyDescriptor,
-    ) {
-      const errorHandlers = Reflect.getMetadata(errorHandlersSym, target) || {};
-      if (errorHandlers[propertyKey]) {
-        errorHandlers[propertyKey].statusCode = statusCode;
-      } else {
-        errorHandlers[propertyKey] = { statusCode };
-      }
-      Reflect.defineMetadata(errorHandlersSym, errorHandlers, target);
-    };
+      propertyKey as ClassMethodDecoratorContext,
+    );
   };
 }
 
@@ -232,8 +269,5 @@ const All = createMethodDecorator([
 ]);
 
 export { Get, Post, Put, Delete, Patch, Head, Options, All };
-
-const ErrorHandler = createErrorHandlerDecorator();
-const ResponseStatus = createResponseStatusDecorator();
 
 export { ErrorHandler, ResponseStatus };
