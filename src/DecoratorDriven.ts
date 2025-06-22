@@ -17,18 +17,55 @@ import {
   fallbackErrorHandlerSym,
   routesSym,
 } from "./Symbols.js";
-
-interface Parameter {
-  type: string;
-  name: string;
-  all: boolean;
-}
+import { getMetadata } from "./revane-util/Metadata.js";
+import { Parameter } from "./Parameter.js";
+import { ModelAttributeProvider } from "./revane-modelattribute/ModelAttributeProvider.js";
+import { BeanAndMethod } from "./revane-modelattribute/BeanAndMethod.js";
 
 export function isDecoratorDriven(target): boolean {
   return Reflect.getMetadata(decoratorDrivenSym, target) === true;
 }
 
-export function buildPlugin(target): FastifyPluginCallback {
+export function extractModelAttributProviders(
+  target,
+  sourceMethodName: string,
+  modelAttributeBeans: Map<string, BeanAndMethod>,
+): Map<string, ModelAttributeProvider> {
+  const routes: any[] | null = getMetadata(routesSym, target);
+
+  if (routes == null) {
+    return new Map();
+  }
+  const routeName = Object.keys(routes).filter(
+    (key) => routes[key].handlerFunction === sourceMethodName,
+  )[0];
+  if (routeName == null) {
+    return new Map();
+  }
+  const modelAttribteProviders = new Map<string, ModelAttributeProvider>();
+
+  Array.from(routes[routeName].parameters)
+    .filter((parameter: Parameter) => parameter.type === "model-attribute")
+    .forEach((parameter: Parameter) => {
+      const bean = modelAttributeBeans.get(parameter.name).bean;
+      const targetMethodName = modelAttributeBeans.get(parameter.name).method;
+
+      const routes = Reflect.getMetadata(routesSym, bean);
+      modelAttribteProviders.set(
+        parameter.name,
+        new ModelAttributeProvider(
+          routes[targetMethodName].parameters as Parameter[],
+          bean[targetMethodName].bind(bean),
+        ),
+      );
+    });
+  return modelAttribteProviders;
+}
+
+export function buildPlugin(
+  target,
+  modelAttributeBeans: Map<string, BeanAndMethod>,
+): FastifyPluginCallback {
   const routes = Reflect.getMetadata(routesSym, target);
   const errorHandler = buildErrorHandler(target);
   function plugin(
@@ -44,9 +81,18 @@ export function buildPlugin(target): FastifyPluginCallback {
       if (!options.url || !options.method) {
         continue;
       }
-      const boundHandler = target[route.handlerFunction].bind(target);
+      const handlerFunction = route.handlerFunction;
+      const boundHandler = target[handlerFunction].bind(target);
       if (route.parameters) {
-        options.handler = buildHandler(route.parameters || [], boundHandler);
+        options.handler = buildHandler(
+          route.parameters || [],
+          boundHandler,
+          extractModelAttributProviders(
+            target,
+            handlerFunction,
+            modelAttributeBeans,
+          ),
+        );
       } else {
         options.handler = boundHandler as RouteHandlerMethod;
       }
@@ -133,6 +179,7 @@ function buildHandler(
   parameters: Parameter[],
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   handler: Function,
+  modelAttribteProviders: Map<string, ModelAttributeProvider>,
 ): RouteHandlerMethod {
   if (parameters.length === 0) {
     return async function route(
@@ -159,6 +206,14 @@ function buildHandler(
         args.push(new RevaneFastifyResponse(reply));
       } else if (parameter.type === "request") {
         args.push(new RevaneFastifyRequest(request));
+      } else if (parameter.type === "model-attribute") {
+        args.push(
+          await valueFromModelAttributeProdider(
+            request,
+            parameter,
+            modelAttribteProviders,
+          ),
+        );
       } else {
         if (parameter.all) {
           args.push(request[parameter.type]);
@@ -169,4 +224,26 @@ function buildHandler(
     }
     return await handler.apply(this, args);
   };
+
+  async function valueFromModelAttributeProdider(
+    request: FastifyRequest,
+    parameter: Parameter,
+    modelAttribteProviders: Map<string, ModelAttributeProvider>,
+  ) {
+    const modelAttributeArgs = [];
+    for (const modelAttribteParameter of modelAttribteProviders.get(
+      parameter.name,
+    ).parameters) {
+      if (modelAttribteParameter.all) {
+        modelAttributeArgs.push(request[modelAttribteParameter.type]);
+      } else {
+        modelAttributeArgs.push(
+          request[modelAttribteParameter.type][modelAttribteParameter.name],
+        );
+      }
+    }
+    return await modelAttribteProviders
+      .get(parameter.name)
+      .provider(...modelAttributeArgs);
+  }
 }

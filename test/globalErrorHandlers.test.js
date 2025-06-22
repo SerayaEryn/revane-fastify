@@ -33,6 +33,9 @@ const beanProvider = {
   getByComponentType() {
     return Promise.resolve([new GlobalErrorHandler()]);
   },
+  getByMarker() {
+    return [];
+  },
 };
 
 test("errorhandler with errorCode and statusCode", async (t) => {

@@ -52,6 +52,9 @@ const revane = {
   getByComponentType() {
     return [new TestController()];
   },
+  getByMarker() {
+    return [];
+  },
 };
 
 test("Should register controller", (t) => {

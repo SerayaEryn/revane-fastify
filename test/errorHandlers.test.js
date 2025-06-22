@@ -32,6 +32,9 @@ const beanProvider = {
   getByComponentType() {
     return [];
   },
+  getByMarker() {
+    return [];
+  },
 };
 
 test("errorhandler with errorCode and statusCode", async (t) => {

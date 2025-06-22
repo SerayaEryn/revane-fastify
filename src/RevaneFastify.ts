@@ -20,6 +20,9 @@ import { hostname } from "node:os";
 import { fastifyCompress } from "@fastify/compress";
 import { fastifyStatic } from "@fastify/static";
 import { join } from "node:path";
+import { modelAttributeMethodSym } from "./Symbols.js";
+import { BeanAndMethod } from "./revane-modelattribute/BeanAndMethod.js";
+import { ModelAttribute } from "./revane-modelattribute/ModelAttribute.js";
 
 interface Controller {
   plugin: FastifyPluginCallback;
@@ -31,7 +34,7 @@ const COMPRESSION_ENABLED = "revane.server.compression.enabled";
 const SERVE_STATIC_FILES_ENABLED = "revane.server.static-files.enabled";
 
 export * from "./Decorators.js";
-export { RevaneResponse, RevaneRequest, RevaneFastifyContext };
+export { RevaneResponse, RevaneRequest, RevaneFastifyContext, ModelAttribute };
 
 export function revaneFastify(
   options: Options,
@@ -77,11 +80,36 @@ export class RevaneFastify {
     const controllers = await this.#context.getByComponentType("controller");
     for (const controller of controllers) {
       if (isDecoratorDriven(controller)) {
-        this.#server.register(buildPlugin(controller));
+        this.#server.register(
+          buildPlugin(controller, await this.#modelAttributeBeans()),
+        );
       } else {
         this.#registerPlugin(controller);
       }
     }
+  }
+
+  async #modelAttributeBeans(): Promise<Map<string, BeanAndMethod>> {
+    const modelAttributeBeans = await this.#context.getByMarker(
+      modelAttributeMethodSym,
+    );
+    const map = new Map<string, BeanAndMethod>();
+    for (const bean of modelAttributeBeans) {
+      const meta: Map<string, string | symbol> = Reflect.getMetadata(
+        modelAttributeMethodSym,
+        bean,
+      );
+      Array.from(meta.keys()).forEach((parameterName) => {
+        if (map.has(parameterName)) {
+          throw new Error("duplicate model attribute method");
+        }
+        map.set(
+          parameterName,
+          new BeanAndMethod(bean, meta.get(parameterName)),
+        );
+      });
+    }
+    return map;
   }
 
   public registerGlobalErrorHandler(): RevaneFastify {
@@ -250,7 +278,9 @@ export class RevaneFastify {
     if (typeof plugin === "string") {
       const pluginById = await this.#context.getById(plugin);
       if (isDecoratorDriven(pluginById)) {
-        this.#server.register(buildPlugin(pluginById));
+        this.#server.register(
+          buildPlugin(pluginById, await this.#modelAttributeBeans()),
+        );
       } else {
         this.#registerPlugin(pluginById);
       }

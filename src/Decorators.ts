@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import { parse } from "acorn";
 import {
   decoratorDrivenSym,
   errorHandlersSym,
@@ -9,6 +8,7 @@ import {
 import { RevaneRequest } from "./RevaneRequest.js";
 import { RevaneResponse } from "./RevaneFastify.js";
 import { getMetadata, setMetadata } from "./revane-util/Metadata.js";
+import { parameterName } from "./revane-util/ParameterName.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function createMethodDecorator(method: string | string[]): Function {
@@ -93,7 +93,7 @@ function createRequestValueParameterDecorator(type: string) {
   };
 }
 
-function addParameterMetadata(
+export function addParameterMetadata(
   target: object,
   maybeName: string,
   propertyKey: string | symbol,
@@ -102,27 +102,12 @@ function addParameterMetadata(
   all: boolean,
 ): void {
   const routes = Reflect.getMetadata(routesSym, target) || {};
-  const name = maybeName || getName(target, propertyKey, parameterIndex);
+  const name = maybeName || parameterName(target, propertyKey, parameterIndex);
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] };
   }
   routes[propertyKey].parameters.unshift({ type, name, all });
   Reflect.defineMetadata(routesSym, routes, target);
-}
-
-function getName(
-  target: object,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-): string {
-  let functionSource: string = target[propertyKey].toString();
-  if (functionSource.startsWith("async")) {
-    functionSource = `async function ${functionSource.substring(6)}`;
-  } else {
-    functionSource = `function ${functionSource}`;
-  }
-  const ast = parse(functionSource, { ecmaVersion: "latest" }) as any;
-  return ast.body[0].params[parameterIndex].name;
 }
 
 function ErrorHandler(

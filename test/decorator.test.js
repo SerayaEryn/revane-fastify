@@ -32,6 +32,9 @@ const beanProvider = {
   getByComponentType() {
     return [];
   },
+  getByMarker() {
+    return [];
+  },
 };
 
 test("get", async (t) => {
