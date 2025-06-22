@@ -1,7 +1,10 @@
 import { getMetadata, setMetadata } from "../revane-util/Metadata.js";
 import { parameterName } from "../revane-util/ParameterName.js";
 import { addParameterMetadata } from "../RevaneFastify.js";
-import { modelAttributeMethodSym } from "../Symbols.js";
+import {
+  modelAttributeMethodSym,
+  modelAttributeParameterSym,
+} from "../Symbols.js";
 
 export function ModelAttribute(
   target: any,
@@ -9,6 +12,7 @@ export function ModelAttribute(
   parameterIndex?: number | PropertyDescriptor,
 ): any {
   if (typeof parameterIndex === "number") {
+    Reflect.defineMetadata(modelAttributeParameterSym, true, target);
     const name = parameterName(target, propertyKey as string, parameterIndex);
     addParameterMetadata(
       target,
