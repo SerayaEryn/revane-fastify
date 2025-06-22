@@ -9,6 +9,10 @@ export class RevaneFastifyRequest implements RevaneRequest {
     return this.request.url;
   }
 
+  public get originalUrl(): string {
+    return this.request.originalUrl;
+  }
+
   // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
   public cookies(): { [cookieName: string]: string } {
     return this.request.cookies;
@@ -40,5 +44,21 @@ export class RevaneFastifyRequest implements RevaneRequest {
 
   public ip(): string {
     return this.request.ip;
+  }
+
+  public get id(): string {
+    return this.request.id;
+  }
+
+  public get ips(): string[] {
+    return this.request.ips;
+  }
+
+  public get host(): string {
+    return this.request.host;
+  }
+
+  public get port(): number {
+    return this.request.port;
   }
 }
