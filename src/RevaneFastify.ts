@@ -42,13 +42,16 @@ const COMPRESSION_ENABLED = "revane.server.compression.enabled";
 const SERVE_STATIC_FILES_ENABLED = "revane.server.static-files.enabled";
 
 export * from "./revane-controllers/Decorators.js";
+const errorCodes = {
+  REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
+  REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER,
+}
 export {
   RevaneResponse,
   RevaneRequest,
   RevaneFastifyContext,
   ModelAttribute,
-  REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
-  REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER,
+  errorCodes
 };
 
 export function revaneFastify(
