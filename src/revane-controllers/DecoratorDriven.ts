@@ -22,16 +22,17 @@ import { ModelAttributeConverter } from "../revane-modelattribute/ModelAttribute
 import { BeanAndMethod } from "../revane-modelattribute/BeanAndMethod.js";
 import { modelAttributConvertersForParameters } from "../revane-modelattribute/ModelAttributSupplier.js";
 import { Routes } from "./Route.js";
+import { getMetadata } from "../revane-util/Metadata.js";
 
 export function isDecoratorDriven(target): boolean {
-  return Reflect.getMetadata(decoratorDrivenSym, target) === true;
+  return getMetadata(decoratorDrivenSym, target) === true;
 }
 
 export function buildPlugin(
   target,
   modelAttributeBeans: Map<string, BeanAndMethod>,
 ): FastifyPluginCallback {
-  const routes: Routes = Reflect.getMetadata(routesSym, target);
+  const routes: Routes = getMetadata(routesSym, target);
   const errorHandler = buildErrorHandler(target);
   const allOptions = [];
   for (const routeName in routes) {
@@ -91,16 +92,15 @@ export function buildGlobalErrorHandler(
 
 function isErrorHandler(controllerAdvice: any): unknown {
   return (
-    Reflect.getMetadata(errorHandlersSym, controllerAdvice) != null ||
-    Reflect.getMetadata(fallbackErrorHandlerSym, controllerAdvice) != null
+    getMetadata(errorHandlersSym, controllerAdvice) != null ||
+    getMetadata(fallbackErrorHandlerSym, controllerAdvice) != null
   );
 }
 
 export function buildErrorHandler(target): ErrorHandler | null {
-  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  const errorHandlers: { [cookieName: string]: ErrorHandlerDefinition } =
-    Reflect.getMetadata(errorHandlersSym, target) || {};
-  const fallbackErrorHandler: ErrorHandlerDefinition = Reflect.getMetadata(
+  const errorHandlers: Record<string, ErrorHandlerDefinition> =
+    getMetadata(errorHandlersSym, target) || {};
+  const fallbackErrorHandler: ErrorHandlerDefinition = getMetadata(
     fallbackErrorHandlerSym,
     target,
   );

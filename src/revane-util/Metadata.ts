@@ -1,16 +1,22 @@
+import "polyfill-symbol-metadata";
+
 export function setMetadata(
   sym: any,
   value: any,
-  target: any,
+  target: object,
   context?: ClassDecoratorContext | ClassMethodDecoratorContext,
 ) {
   if (typeof context !== "object") {
-    Reflect.defineMetadata(sym, value, target);
+    target[Symbol.metadata] ??= {};
+    target[Symbol.metadata]![sym] = value;
   } else {
-    context.metadata![sym] = value;
+    context.metadata[sym] = value;
   }
 }
 
-export function getMetadata(sym: any, target: any): any {
-  return Reflect.getMetadata(sym, target) ?? target[Symbol["metadata"]] ?? null;
+export function getMetadata(sym: any, target: object): any | null {
+  target[Symbol.metadata] ??= {};
+  return (
+    target[Symbol.metadata]![sym] ?? (target["metadata"] ?? {})[sym] ?? null
+  );
 }

@@ -1,8 +1,5 @@
 import test from "ava";
-import {
-  REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
-  revaneFastify,
-} from "../src/RevaneFastify.js";
+import { errorCodes, revaneFastify } from "../src/RevaneFastify.js";
 import TestController from "../testdata/TestController.js";
 import { ModelAttributeController } from "../testdata/ModelAttributeController.js";
 import { TestAddressProvider } from "../testdata/TestAddressProvider.js";
@@ -76,6 +73,6 @@ test("Should throw error on duplicate converter", async (t) => {
         throw err;
       }
     },
-    { code: REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER },
+    { code: errorCodes.REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER },
   );
 });

@@ -31,6 +31,7 @@ import {
   REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
 } from "./revane-modelattribute/DuplicateModelAttributeConverter.js";
 import { REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER } from "./revane-modelattribute/MissingModelAttributeConverter.js";
+import { getMetadata } from "./revane-util/Metadata.js";
 
 interface Controller {
   plugin: FastifyPluginCallback;
@@ -45,13 +46,13 @@ export * from "./revane-controllers/Decorators.js";
 const errorCodes = {
   REV_ERR_DUPLICATE_MODEL_ATTRIBUTE_CONVERTER,
   REV_ERR_MISSING_MODEL_ATTRIBUTE_CONVERTER,
-}
+};
 export {
   RevaneResponse,
   RevaneRequest,
   RevaneFastifyContext,
   ModelAttribute,
-  errorCodes
+  errorCodes,
 };
 
 export function revaneFastify(
@@ -113,11 +114,11 @@ export class RevaneFastify {
     );
     const map = new Map<string, BeanAndMethod>();
     for (const bean of modelAttributeBeans) {
-      const duplicate = Reflect.getMetadata(modelAttributeDuplicateSym, bean);
+      const duplicate = getMetadata(modelAttributeDuplicateSym, bean);
       if (duplicate ?? false) {
         throw new DuplicateModelAttributeConverter(duplicate);
       }
-      const meta: Map<string, string | symbol> = Reflect.getMetadata(
+      const meta: Map<string, string | symbol> = getMetadata(
         modelAttributeMethodSym,
         bean,
       );

@@ -14,7 +14,7 @@ export function ModelAttribute(
   parameterIndex?: number | PropertyDescriptor,
 ): any {
   if (typeof parameterIndex === "number") {
-    Reflect.defineMetadata(modelAttributeParameterSym, true, target);
+    setMetadata(modelAttributeParameterSym, true, target);
     const name = parameterName(target, propertyKey as string, parameterIndex);
     addParameterMetadata(
       target,

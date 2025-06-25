@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import {
   decoratorDrivenSym,
   errorHandlersSym,
@@ -12,7 +11,8 @@ import { parameterName } from "../revane-util/ParameterName.js";
 import { Routes } from "./Route.js";
 import { ParameterType } from "./Parameter.js";
 
-function createMethodDecorator(method: string | string[]): ParameterDecorator {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+function createMethodDecorator(method: string | string[]): Function {
   return function methodDecorator(url: string, options?: any) {
     return function decorate(
       target,
@@ -51,7 +51,8 @@ function createMethodDecorator(method: string | string[]): ParameterDecorator {
 
 function createRequestSubValueParameterDecorator(
   type: ParameterType,
-): ParameterDecorator {
+): Function {
+  // eslint-disable-line @typescript-eslint/no-unsafe-function-type
   return function parameterDecorator(
     maybeName: string | object,
     maybePropertyKey?: string | symbol,
@@ -85,7 +86,9 @@ function createRequestSubValueParameterDecorator(
   };
 }
 
-function createRequestValueParameterDecorator(type: ParameterType): ParameterDecorator {
+function createRequestValueParameterDecorator(
+  type: ParameterType,
+): ParameterDecorator {
   return function (
     target: object,
     propertyKey: string | symbol,
@@ -103,13 +106,13 @@ export function addParameterMetadata(
   type: ParameterType,
   all: boolean,
 ): void {
-  const routes: Routes = Reflect.getMetadata(routesSym, target) ?? {};
+  const routes: Routes = getMetadata(routesSym, target) ?? {};
   const name = maybeName ?? parameterName(target, propertyKey, parameterIndex);
   if (!routes[propertyKey]) {
     routes[propertyKey] = { parameters: [] };
   }
   routes[propertyKey].parameters.unshift({ type, name, all });
-  Reflect.defineMetadata(routesSym, routes, target);
+  setMetadata(routesSym, routes, target);
 }
 
 function ErrorHandler(
