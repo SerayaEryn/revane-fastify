@@ -12,8 +12,7 @@ import { parameterName } from "../revane-util/ParameterName.js";
 import { Routes } from "./Route.js";
 import { ParameterType } from "./Parameter.js";
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function createMethodDecorator(method: string | string[]): Function {
+function createMethodDecorator(method: string | string[]): ParameterDecorator {
   return function methodDecorator(url: string, options?: any) {
     return function decorate(
       target,
@@ -52,8 +51,7 @@ function createMethodDecorator(method: string | string[]): Function {
 
 function createRequestSubValueParameterDecorator(
   type: ParameterType,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-): Function {
+): ParameterDecorator {
   return function parameterDecorator(
     maybeName: string | object,
     maybePropertyKey?: string | symbol,
@@ -87,7 +85,7 @@ function createRequestSubValueParameterDecorator(
   };
 }
 
-function createRequestValueParameterDecorator(type: ParameterType) {
+function createRequestValueParameterDecorator(type: ParameterType): ParameterDecorator {
   return function (
     target: object,
     propertyKey: string | symbol,
