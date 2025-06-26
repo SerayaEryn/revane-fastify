@@ -51,8 +51,8 @@ function createMethodDecorator(method: string | string[]): Function {
 
 function createRequestSubValueParameterDecorator(
   type: ParameterType,
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 ): Function {
-  // eslint-disable-line @typescript-eslint/no-unsafe-function-type
   return function parameterDecorator(
     maybeName: string | object,
     maybePropertyKey?: string | symbol,
