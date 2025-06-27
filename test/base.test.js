@@ -77,6 +77,27 @@ test("Should register controller", (t) => {
     .catch(console.error);
 });
 
+test("Should pass options to server", (t) => {
+  t.plan(3);
+
+  const options = {
+    port: 0,
+    bodyLimit: 42,
+    caseSensitive: false,
+    requestIdHeader: "x-id",
+  };
+  const instance = revaneFastify(options, revane);
+  return instance
+    .listen()
+    .then(() => {
+      t.is(instance._initialConfig().bodyLimit, 42);
+      t.is(instance._initialConfig().caseSensitive, false);
+      t.is(instance._initialConfig().requestIdHeader, "x-id");
+      instance.close();
+    })
+    .catch(console.error);
+});
+
 test("Should bind and create plugin", async (t) => {
   t.plan(3);
 

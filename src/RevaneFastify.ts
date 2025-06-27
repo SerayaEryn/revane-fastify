@@ -4,6 +4,7 @@ import fastify, {
   FastifyRequest,
   FastifyReply,
   FastifyInstance,
+  FastifyServerOptions,
 } from "fastify";
 import { IncomingMessage, ServerResponse, Server } from "node:http";
 import {
@@ -73,7 +74,17 @@ export class RevaneFastify {
   constructor(options: Options, context: RevaneFastifyContext) {
     this.#options = options;
     this.#context = context;
-    this.#server = fastify();
+    const fastifyOptions: FastifyServerOptions = {};
+    if (options.bodyLimit != null) {
+      fastifyOptions.bodyLimit = options.bodyLimit;
+    }
+    if (options.caseSensitive != null) {
+      fastifyOptions.caseSensitive = options.caseSensitive;
+    }
+    if (options.requestIdHeader != null) {
+      fastifyOptions.requestIdHeader = options.requestIdHeader;
+    }
+    this.#server = fastify(fastifyOptions);
     this.#promise = this.#registerAccessLogger();
   }
 
@@ -379,6 +390,10 @@ export class RevaneFastify {
   async #accessLogEnabled(): Promise<boolean> {
     const configuration = await this.#context.getById("configuration");
     return configuration.getBooleanOrElse(ACCESS_LOG_ENABLED, true);
+  }
+
+  _initialConfig(): FastifyServerOptions {
+    return this.#server.initialConfig;
   }
 }
 

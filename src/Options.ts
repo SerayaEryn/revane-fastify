@@ -5,4 +5,7 @@ export interface Options {
   port?: number;
   silent?: boolean;
   name?: string;
+  bodyLimit?: number;
+  caseSensitive?: boolean;
+  requestIdHeader?: string;
 }
