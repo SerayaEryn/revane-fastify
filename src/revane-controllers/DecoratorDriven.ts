@@ -9,7 +9,7 @@ import {
 } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 import { ErrorHandlerDefinition } from "./Decorators.js";
-import { RevaneFastifyResponse } from "../RevaneFastifyReponse.js";
+import { RevaneFastifyResponse } from "../RevaneFastifyResponse.js";
 import { RevaneFastifyRequest } from "../RevaneFastifyRequest.js";
 import {
   decoratorDrivenSym,

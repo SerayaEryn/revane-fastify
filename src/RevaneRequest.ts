@@ -11,4 +11,9 @@ export interface RevaneRequest {
   method(): string;
   hostname(): string;
   ip(): string;
+  get id(): string;
+  get ips(): string[];
+  get host(): string;
+  get port(): number;
+  get originalUrl(): string;
 }

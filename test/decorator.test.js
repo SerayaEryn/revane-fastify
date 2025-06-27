@@ -332,3 +332,25 @@ test("redirect", async (t) => {
   t.is(data.toString(), "booom");
   instance.close();
 });
+
+test("request & response", async (t) => {
+  t.plan(3);
+
+  const options = {
+    port: 0,
+  };
+  const instance = revaneFastify(options, beanProvider);
+  await instance
+    .register("userController")
+    .ready(() => {
+      t.truthy(instance.printRoutes());
+    })
+    .listen();
+  instance.unref();
+  const port = instance.port();
+  const response = await fetch(`http://localhost:${port}/hello`);
+  const data = await response.text();
+  t.is(response.status, 200);
+  t.is(data.toString(), "200localhost");
+  instance.close();
+});

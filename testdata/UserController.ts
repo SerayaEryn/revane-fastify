@@ -73,6 +73,12 @@ export class UserController {
     reply.redirect('/error')
   }
 
+  @Get('/hello')
+  hello (@Response() reply: RevaneResponse, @Request() request: RevaneRequest): string {
+    reply.status(200)
+    return reply.statusCode + request.hostname() 
+  }
+
   @Get('/cookie')
   getCookie (@Cookie test: string): string {
     return test
